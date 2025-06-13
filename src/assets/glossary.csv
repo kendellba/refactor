@@ -1,0 +1,88 @@
+Category,Term,Description,Component,Validation Rules
+Authentication & Security,Login,User authentication process,Login.vue,Required
+Authentication & Security,Password,Account access credential,ChangePassword.vue,Minimum 8 characters, must include uppercase, lowercase, number, and special character
+Authentication & Security,Forgot Password,Password recovery process,ForgotPassword.vue,Email must be verified
+Authentication & Security,Email Verification,Email address confirmation,EmailVerification.vue,Valid email format required
+Authentication & Security,Mobile Verification,Mobile number confirmation,MobileVerification.vue,Valid phone number format required
+Authentication & Security,Password Strength,Password security level,PasswordStrengthMeter.vue,Shows password strength indicator
+Authentication & Security,Terms and Conditions,Legal agreement terms,TermsAndConditions.vue,Must be accepted
+Authentication & Security,Membership Declaration,Membership agreement,MembershipDeclarationAgreement.vue,Must be accepted
+Authentication & Security,Due Diligence,Compliance verification process,DueDiligence.vue,Required for foreign nationals
+
+Personal Information,First Name,User's first name,BasicInfo.vue,Required, letters only
+Personal Information,Last Name,User's last name,BasicInfo.vue,Required, letters only
+Personal Information,Date of Birth,User's birth date,BasicInfo.vue,Required, must be valid date
+Personal Information,Gender,User's gender,BasicInfo.vue,Required, must select from options
+Personal Information,Nationality,User's country of origin,BasicInfo.vue,Required, must select from list
+Personal Information,Country,User's country of residence,BasicInfo.vue,Required, must select from list
+Personal Information,Marital Status,Current marital situation,BasicInfo.vue,Required, must select from options
+Personal Information,Place of Birth,Location of birth,BasicInfo.vue,Required
+
+Contact Information,Email,User's email address,BasicInfo.vue,Required, valid email format
+Contact Information,Phone Number,User's contact number,BasicInfo.vue,Required, valid phone format
+Contact Information,Country Code,International dialing code,BasicInfo.vue,Required, must select from list
+Contact Information,Address Line 1,Primary address line,Address.vue,Required
+Contact Information,Address Line 2,Secondary address line,Address.vue,Optional
+Contact Information,City,City of residence,Address.vue,Required
+Contact Information,State/Province,State or province of residence,Address.vue,Required
+Contact Information,Postal Code,Postal/ZIP code,Address.vue,Required, valid format
+
+Identification Documents,ID Type,Type of identification document,IDInformation.vue,Required, must select from options
+Identification Documents,ID Number,Identification document number,IDInformation.vue,Required, format varies by ID type
+Identification Documents,Passport,International travel document,IDInformation.vue,Required for foreign nationals
+Identification Documents,National ID,Government-issued identification,IDInformation.vue,Required for citizens
+Identification Documents,Driver's License,Vehicle operator's license,IDInformation.vue,Alternative ID option
+Identification Documents,ID Expiry Date,Document expiration date,IDInformation.vue,Required, must be future date
+Identification Documents,ID Document Upload,Digital copy of ID,IDInformation.vue,Required, must be clear image
+
+Employment Information,Employment Status,Current employment situation,EmploymentInformation.vue,Required, must select from options
+Employment Information,Occupation,Current job or profession,EmploymentInformation.vue,Required
+Employment Information,Business Owner,Status of business ownership,EmploymentInformation.vue,Required if self-employed
+Employment Information,Business Type,Type of business owned,EmploymentInformation.vue,Required if business owner
+Employment Information,NIS Number,National Insurance Scheme number,EmploymentInformation.vue,Required if employed
+Employment Information,Employer Name,Name of current employer,EmploymentInformation.vue,Required if employed
+Employment Information,Employer Address,Address of employer,EmploymentInformation.vue,Required if employed
+Employment Information,Employer Phone,Contact number of employer,EmploymentInformation.vue,Required if employed
+
+Financial Information,Source of Funds,Origin of financial resources,EmploymentInformation.vue,Required
+Financial Information,Job Letter,Employment verification document,EmploymentInformation.vue,Required if employed
+Financial Information,Payslip,Salary payment document,EmploymentInformation.vue,Required if employed
+Financial Information,Bank Statement,Account transaction record,EmploymentInformation.vue,Required
+Financial Information,Income Statement,Financial earnings document,EmploymentInformation.vue,Required if self-employed
+Financial Information,Financial Declaration,Statement of financial status,FinancialDeclaration.vue,Required
+
+Education Information,School Name,Educational institution name,BasicInfo.vue,Required for students
+Education Information,School Type,Type of educational institution,BasicInfo.vue,Required for students
+Education Information,Grade Level,Current academic grade,BasicInfo.vue,Required for students
+
+Legal & Compliance,Politically Exposed Person (PEP),Person with prominent public function,PoliticallyExposedPersons.vue,Required declaration
+Legal & Compliance,Power of Attorney,Legal authority to act on behalf of another,PowerofAttorney.vue,Required if applicable
+Legal & Compliance,Beneficiary,Person receiving benefits or assets,DesignationOfBeneficiary.vue,Required
+Legal & Compliance,Guardian,Person responsible for a minor,ParentGuardianInformation.vue,Required for child accounts
+Legal & Compliance,Principal,Person granting power of attorney,PowerofAttorney.vue,Required if POA
+Legal & Compliance,Relationship to Principal,Connection to power of attorney grantor,PowerofAttorney.vue,Required if POA
+
+Account Management,New Customer,First-time account holder,NewOrExistingCustomer.vue,Required selection
+Account Management,Existing Customer,Previous account holder,NewOrExistingCustomer.vue,Required selection
+Account Management,Account Number,Unique account identifier,AccountNumber.vue,Generated by system
+Account Management,Branch,Physical location of account,Branch.vue,Required selection
+Account Management,Getting Ready,Account setup preparation,GettingReady.vue,Required steps
+Account Management,Success,Successful completion status,Success.vue,System generated
+Account Management,Approvals,Account approval status,Approvals.vue,System managed
+
+Dashboard Features,Accounts,Account management section,DashboardMain.vue,System feature
+Dashboard Features,Transfers,Money transfer section,DashboardMain.vue,System feature
+Dashboard Features,Applications,Application management section,DashboardMain.vue,System feature
+Dashboard Features,Requests,Request management section,DashboardMain.vue,System feature
+Dashboard Features,Notifications,System alerts and updates,DashboardMain.vue,System feature
+Dashboard Features,Settings,Account configuration,DashboardMain.vue,System feature
+
+Foreign National Information,Bank Information,International banking details,ForeignNationalBankInformation.vue,Required for foreign nationals
+Foreign National Information,Foreign Address,International residence address,ForeignNationalBankInformation.vue,Required for foreign nationals
+Foreign National Information,Foreign ID,International identification,ForeignNationalBankInformation.vue,Required for foreign nationals
+Foreign National Information,Foreign Bank Account,International bank account,ForeignNationalBankInformation.vue,Required for foreign nationals
+
+Child Account Information,Child ID,Minor's identification,ChildIDInformation.vue,Required for child accounts
+Child Account Information,Parent/Guardian Info,Parent or guardian details,ParentGuardianInformation.vue,Required for child accounts
+Child Account Information,School Information,Educational details,BasicInfo.vue,Required for child accounts
+Child Account Information,Age Verification,Minor's age confirmation,ChildIDInformation.vue,Required for child accounts 
