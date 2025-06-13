@@ -17,410 +17,429 @@ basic info
     </div>
 
     <!-- Main Content -->
-  <v-container class="fill-height" fluid>
-    <v-row no-gutters>
-      <!-- Form Section -->
-      <v-col cols="12" md="6" class="form-section">
-        <v-container class="form-container">
-          <v-row justify="center" align="center">
-            <v-col cols="12" sm="10" md="10" lg="9">
-              <div class="text-center mb-8">
-                <div class="mx-auto mb-4 logo-wrapper">
-                  <img :src="logoImage" alt="Cathedral Engage" class="logo-img" />
+    <v-container class="fill-height" fluid>
+      <!-- Save Indicator -->
+      <SaveIndicator
+        :is-dirty="formState.isDirty"
+        :is-saving="formState.isSaving"
+        :last-saved="lastSaved"
+        :save-error="saveError"
+        floating
+      />
+
+      <!-- Data Recovery Dialog -->
+      <DataRecoveryDialog
+        :show="showRecoveryDialog"
+        :last-saved="lastSaved"
+        @restore="restoreFromSaved"
+        @clear="discardSavedData"
+        @close="showRecoveryDialog = false"
+      />
+
+      <v-row no-gutters class="fill-height">
+        <!-- Form Section -->
+        <v-col cols="12" md="6" class="form-section">
+          <v-container class="form-container">
+            <v-row justify="center" align="center">
+              <v-col cols="12" sm="10" md="10" lg="9">
+                <div class="text-center mb-8">
+                  <div class="mx-auto mb-4 logo-wrapper">
+                    <img :src="logoImage" alt="Cathedral Engage" class="logo-img" />
+                  </div>
+                  <h1 class="text-h4 font-weight-bold primary-text mb-2">Basic Information</h1>
+                  <p class="text-subtitle-1 text-medium-emphasis mobile-small-text">
+                    Please enter your personal details to get started
+                  </p>
                 </div>
-                <h1 class="text-h4 font-weight-bold primary-text mb-2">Basic Information</h1>
-                <p class="text-subtitle-1 text-medium-emphasis mobile-small-text">
-                  Please enter your personal details to get started
-                </p>
-              </div>
 
-              <v-card class="form-card mobile-reduced-padding" elevation="0" rounded="lg">
-                <v-card-text>
-                  <v-form @submit.prevent="handleSubmit">
-                    <v-alert
-                      v-if="formAlertError"
-                      type="error"
-                      variant="tonal"
-                      class="mb-6"
-                      rounded="lg"
-                      elevation="2"
-                    >
-                      {{ formAlertError }}
-                    </v-alert>
+                <v-card class="form-card mobile-reduced-padding" elevation="0" rounded="lg">
+                  <v-card-text>
+                    <v-form @submit.prevent="handleSubmit">
+                      <v-alert
+                        v-if="formAlertError"
+                        type="error"
+                        variant="tonal"
+                        class="mb-6"
+                        rounded="lg"
+                        elevation="2"
+                      >
+                        {{ formAlertError }}
+                      </v-alert>
 
-                    <v-row class="form-section-row mobile-stack">
-                      <v-col cols="12" sm="6" class="mobile-full-width">
-                        <v-text-field
-                          v-model="formData.firstName"
-                          label="First Name"
-                          placeholder="Enter first name"
-                          variant="outlined"
-                          density="comfortable"
-                          bg-color="grey-lighten-5"
-                          prepend-inner-icon="mdi-account"
-                          required
-                          :error="!!fieldErrors.firstName"
-                          @blur="() => validateFormField('firstName')"
-                        >
-                          <template v-if="fieldErrors.firstName" #details>
-                            <div class="custom-error-container">
-                              <v-icon size="small" color="error" class="mr-1">
-                                mdi-alert-circle
-                              </v-icon>
-                              <span>{{ fieldErrors.firstName }}</span>
-                            </div>
-                          </template>
-                        </v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" class="mobile-full-width">
-                        <v-text-field
-                          v-model="formData.lastName"
-                          label="Last Name"
-                          placeholder="Enter last name"
-                          variant="outlined"
-                          density="comfortable"
-                          bg-color="grey-lighten-5"
-                          prepend-inner-icon="mdi-account"
-                          required
-                          :error="!!fieldErrors.lastName"
-                          @blur="() => validateFormField('lastName')"
-                        >
-                          <template v-if="fieldErrors.lastName" #details>
-                            <div class="custom-error-container">
-                              <v-icon size="small" color="error" class="mr-1">
-                                mdi-alert-circle
-                              </v-icon>
-                              <span>{{ fieldErrors.lastName }}</span>
-                            </div>
-                          </template>
-                        </v-text-field>
-                      </v-col>
-                    </v-row>
+                      <v-row class="form-section-row mobile-stack">
+                        <v-col cols="12" sm="6" class="mobile-full-width">
+                          <v-text-field
+                            v-model="formData.firstName"
+                            label="First Name"
+                            placeholder="Enter first name"
+                            variant="outlined"
+                            density="comfortable"
+                            bg-color="grey-lighten-5"
+                            prepend-inner-icon="mdi-account"
+                            required
+                            :error="!!fieldErrors.firstName"
+                            @blur="() => validateFormField('firstName')"
+                          >
+                            <template v-if="fieldErrors.firstName" #details>
+                              <div class="custom-error-container">
+                                <v-icon size="small" color="error" class="mr-1">
+                                  mdi-alert-circle
+                                </v-icon>
+                                <span>{{ fieldErrors.firstName }}</span>
+                              </div>
+                            </template>
+                          </v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6" class="mobile-full-width">
+                          <v-text-field
+                            v-model="formData.lastName"
+                            label="Last Name"
+                            placeholder="Enter last name"
+                            variant="outlined"
+                            density="comfortable"
+                            bg-color="grey-lighten-5"
+                            prepend-inner-icon="mdi-account"
+                            required
+                            :error="!!fieldErrors.lastName"
+                            @blur="() => validateFormField('lastName')"
+                          >
+                            <template v-if="fieldErrors.lastName" #details>
+                              <div class="custom-error-container">
+                                <v-icon size="small" color="error" class="mr-1">
+                                  mdi-alert-circle
+                                </v-icon>
+                                <span>{{ fieldErrors.lastName }}</span>
+                              </div>
+                            </template>
+                          </v-text-field>
+                        </v-col>
+                      </v-row>
 
-                    <v-text-field
-                      v-model="formData.otherName"
-                      label="Other Names"
-                      placeholder="Enter other names (optional)"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-account-plus"
-                    />
-
-                    <v-text-field
-                      v-model="formData.email"
-                      label="Email"
-                      placeholder="Enter email address"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-email"
-                      required
-                      :error="!!fieldErrors.email"
-                      @blur="() => validateFormField('email')"
-                    >
-                      <template v-if="fieldErrors.email" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.email }}</span>
-                        </div>
-                      </template>
-                    </v-text-field>
-
-                    <v-text-field
-                      v-model="formData.mobileNumber"
-                      label="Mobile Number"
-                      placeholder="Enter mobile number"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-phone"
-                      required
-                      :error="!!fieldErrors.mobileNumber"
-                      @blur="() => validateFormField('mobileNumber')"
-                    >
-                      <template v-if="fieldErrors.mobileNumber" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.mobileNumber }}</span>
-                        </div>
-                      </template>
-                    </v-text-field>
-
-                    <v-select
-                      v-model="formData.gender"
-                      label="Gender"
-                      :items="GENDER_OPTIONS"
-                      placeholder="Select gender"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-gender-male-female"
-                      required
-                      :error="!!fieldErrors.gender"
-                      @update:model-value="() => validateFormField('gender')"
-                      @blur="() => validateFormField('gender')"
-                    >
-                      <template v-if="fieldErrors.gender" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.gender }}</span>
-                        </div>
-                      </template>
-                    </v-select>
-
-                    <v-text-field
-                      v-model="formData.dob"
-                      label="Date of Birth"
-                      type="date"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-calendar"
-                      :max="today"
-                      required
-                      :error="!!fieldErrors.dob"
-                      @input="() => validateFormField('dob')"
-                      @blur="() => validateFormField('dob')"
-                    >
-                      <template v-if="fieldErrors.dob" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.dob }}</span>
-                        </div>
-                      </template>
-                    </v-text-field>
-
-                    <div v-if="isUnder18" class="d-flex align-center mb-4 agreement-section">
-                      <v-checkbox
-                        v-model="formData.isHomeschooled"
-                        label="I am homeschooled"
-                        class="mr-2 mt-0 pt-0"
-                        hide-details
+                      <v-text-field
+                        v-model="formData.otherName"
+                        label="Other Names"
+                        placeholder="Enter other names (optional)"
+                        variant="outlined"
                         density="comfortable"
-                      ></v-checkbox>
-                    </div>
-
-                    <div v-if="isUnder18">
-                      <SchoolNameAutocomplete
-                        v-if="!formData.isHomeschooled"
-                        v-model="formData.schoolName"
-                        :error-message="fieldErrors.schoolName"
-                        @validate="() => validateFormField('schoolName')"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-account-plus"
                       />
-                      <div v-else class="text-caption mb-4 text-secondary">
-                        <em>School name not required for homeschooled students</em>
-                      </div>
-                    </div>
 
-                    <div class="d-flex align-center mb-4 agreement-section">
-                      <v-checkbox
-                        v-model="formData.hasForeignBankAccount"
-                        label="I have a foreign bank account"
-                        class="mr-2 mt-0 pt-0"
-                        hide-details
+                      <v-text-field
+                        v-model="formData.email"
+                        label="Email"
+                        placeholder="Enter email address"
+                        variant="outlined"
                         density="comfortable"
-                      ></v-checkbox>
-                    </div>
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-email"
+                        required
+                        :error="!!fieldErrors.email"
+                        @blur="() => validateFormField('email')"
+                      >
+                        <template v-if="fieldErrors.email" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.email }}</span>
+                          </div>
+                        </template>
+                      </v-text-field>
 
-                    <v-select
-                      v-model="formData.nationality"
-                      label="Nationality"
-                      :items="countryList"
-                      placeholder="Select nationality"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-flag"
-                      required
-                      :error="!!fieldErrors.nationality"
-                      @update:model-value="() => validateFormField('nationality')"
-                      @blur="() => validateFormField('nationality')"
-                    >
-                      <template v-if="fieldErrors.nationality" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.nationality }}</span>
+                      <v-text-field
+                        v-model="formData.mobileNumber"
+                        label="Mobile Number"
+                        placeholder="Enter mobile number"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-phone"
+                        required
+                        :error="!!fieldErrors.mobileNumber"
+                        @blur="() => validateFormField('mobileNumber')"
+                      >
+                        <template v-if="fieldErrors.mobileNumber" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.mobileNumber }}</span>
+                          </div>
+                        </template>
+                      </v-text-field>
+
+                      <v-select
+                        v-model="formData.gender"
+                        label="Gender"
+                        :items="GENDER_OPTIONS"
+                        placeholder="Select gender"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-gender-male-female"
+                        required
+                        :error="!!fieldErrors.gender"
+                        @update:model-value="() => validateFormField('gender')"
+                        @blur="() => validateFormField('gender')"
+                      >
+                        <template v-if="fieldErrors.gender" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.gender }}</span>
+                          </div>
+                        </template>
+                      </v-select>
+
+                      <v-text-field
+                        v-model="formData.dob"
+                        label="Date of Birth"
+                        type="date"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-calendar"
+                        :max="today"
+                        required
+                        :error="!!fieldErrors.dob"
+                        @input="() => validateFormField('dob')"
+                        @blur="() => validateFormField('dob')"
+                      >
+                        <template v-if="fieldErrors.dob" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.dob }}</span>
+                          </div>
+                        </template>
+                      </v-text-field>
+
+                      <div v-if="isUnder18" class="d-flex align-center mb-4 agreement-section">
+                        <v-checkbox
+                          v-model="formData.isHomeschooled"
+                          label="I am homeschooled"
+                          class="mr-2 mt-0 pt-0"
+                          hide-details
+                          density="comfortable"
+                        ></v-checkbox>
+                      </div>
+
+                      <div v-if="isUnder18">
+                        <SchoolNameAutocomplete
+                          v-if="!formData.isHomeschooled"
+                          v-model="formData.schoolName"
+                          :error-message="fieldErrors.schoolName"
+                          @validate="() => validateFormField('schoolName')"
+                        />
+                        <div v-else class="text-caption mb-4 text-secondary">
+                          <em>School name not required for homeschooled students</em>
                         </div>
-                      </template>
-                    </v-select>
+                      </div>
 
-                    <v-select
-                      v-model="formData.maritalStatus"
-                      label="Marital Status"
-                      :items="isAdult ? ADULT_MARITAL_STATUS_OPTIONS : MINOR_MARITAL_STATUS_OPTIONS"
-                      placeholder="Select marital status"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-heart"
-                      required
-                      :error="!!fieldErrors.maritalStatus"
-                      @update:model-value="() => validateFormField('maritalStatus')"
-                      @blur="() => validateFormField('maritalStatus')"
-                    >
-                      <template v-if="fieldErrors.maritalStatus" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.maritalStatus }}</span>
-                        </div>
-                      </template>
-                    </v-select>
+                      <div class="d-flex align-center mb-4 agreement-section">
+                        <v-checkbox
+                          v-model="formData.hasForeignBankAccount"
+                          label="I have a foreign bank account"
+                          class="mr-2 mt-0 pt-0"
+                          hide-details
+                          density="comfortable"
+                        ></v-checkbox>
+                      </div>
 
-                    <v-text-field
-                      v-model="formData.password"
-                      label="Password"
-                      :type="showPassword ? 'text' : 'password'"
-                      placeholder="Enter password"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-lock"
-                      :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                      required
-                      :error="!!fieldErrors.password"
-                      @input="() => validateFormField('password')"
-                      @blur="() => validateFormField('password')"
-                      @click:append-inner="showPassword = !showPassword"
-                    >
-                      <template v-if="fieldErrors.password" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.password }}</span>
-                        </div>
-                      </template>
-                    </v-text-field>
+                      <v-select
+                        v-model="formData.nationality"
+                        label="Nationality"
+                        :items="countryList"
+                        placeholder="Select nationality"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-flag"
+                        required
+                        :error="!!fieldErrors.nationality"
+                        @update:model-value="() => validateFormField('nationality')"
+                        @blur="() => validateFormField('nationality')"
+                      >
+                        <template v-if="fieldErrors.nationality" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.nationality }}</span>
+                          </div>
+                        </template>
+                      </v-select>
 
-                    <v-text-field
-                      v-model="formData.confirmPassword"
-                      label="Confirm Password"
-                      :type="showConfirmPassword ? 'text' : 'password'"
-                      placeholder="Confirm password"
-                      variant="outlined"
-                      density="comfortable"
-                      bg-color="grey-lighten-5"
-                      prepend-inner-icon="mdi-lock-check"
-                      :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                      required
-                      :error="!!fieldErrors.confirmPassword"
-                      @input="() => validateFormField('confirmPassword')"
-                      @blur="() => validateFormField('confirmPassword')"
-                      @click:append-inner="showConfirmPassword = !showConfirmPassword"
-                    >
-                      <template v-if="fieldErrors.confirmPassword" #details>
-                        <div class="custom-error-container">
-                          <v-icon size="small" color="error" class="mr-1">
-                            mdi-alert-circle
-                          </v-icon>
-                          <span>{{ fieldErrors.confirmPassword }}</span>
-                        </div>
-                      </template>
-                    </v-text-field>
+                      <v-select
+                        v-model="formData.maritalStatus"
+                        label="Marital Status"
+                        :items="isAdult ? ADULT_MARITAL_STATUS_OPTIONS : MINOR_MARITAL_STATUS_OPTIONS"
+                        placeholder="Select marital status"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-heart"
+                        required
+                        :error="!!fieldErrors.maritalStatus"
+                        @update:model-value="() => validateFormField('maritalStatus')"
+                        @blur="() => validateFormField('maritalStatus')"
+                      >
+                        <template v-if="fieldErrors.maritalStatus" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.maritalStatus }}</span>
+                          </div>
+                        </template>
+                      </v-select>
 
-                    <PasswordStrengthMeter :strength="passwordStrength" />
+                      <v-text-field
+                        v-model="formData.password"
+                        label="Password"
+                        :type="showPassword ? 'text' : 'password'"
+                        placeholder="Enter password"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-lock"
+                        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        required
+                        :error="!!fieldErrors.password"
+                        @input="() => validateFormField('password')"
+                        @blur="() => validateFormField('password')"
+                        @click:append-inner="showPassword = !showPassword"
+                      >
+                        <template v-if="fieldErrors.password" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.password }}</span>
+                          </div>
+                        </template>
+                      </v-text-field>
 
-                    <v-divider class="my-6"></v-divider>
+                      <v-text-field
+                        v-model="formData.confirmPassword"
+                        label="Confirm Password"
+                        :type="showConfirmPassword ? 'text' : 'password'"
+                        placeholder="Confirm password"
+                        variant="outlined"
+                        density="comfortable"
+                        bg-color="grey-lighten-5"
+                        prepend-inner-icon="mdi-lock-check"
+                        :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        required
+                        :error="!!fieldErrors.confirmPassword"
+                        @input="() => validateFormField('confirmPassword')"
+                        @blur="() => validateFormField('confirmPassword')"
+                        @click:append-inner="showConfirmPassword = !showConfirmPassword"
+                      >
+                        <template v-if="fieldErrors.confirmPassword" #details>
+                          <div class="custom-error-container">
+                            <v-icon size="small" color="error" class="mr-1">
+                              mdi-alert-circle
+                            </v-icon>
+                            <span>{{ fieldErrors.confirmPassword }}</span>
+                          </div>
+                        </template>
+                      </v-text-field>
 
-                    <div class="d-flex align-center mb-4 agreement-section">
-                      <v-checkbox
-                        v-model="formData.termsViewed"
-                        label="I agree to the"
-                        class="mr-2 mt-0 pt-0"
-                        hide-details
-                      ></v-checkbox>
-                      <span class="checkbox-label">
-                        <a href="#" class="text-decoration-none" @click.prevent="openTerms">
-                          Terms and Conditions</a
-                        >
-                      </span>
-                    </div>
+                      <PasswordStrengthMeter :strength="passwordStrength" />
 
-                    <div class="d-flex align-center mb-6 agreement-section">
-                      <v-checkbox
-                        v-model="formData.financialAgreementViewed"
-                        label="I agree to the"
-                        class="mr-2 mt-0 pt-0"
-                        hide-details
-                      ></v-checkbox>
-                      <span class="checkbox-label">
-                        <a
-                          href="#"
-                          class="text-decoration-none"
-                          @click.prevent="openFinancialDeclaration"
-                        >
-                          Financial Declaration</a
-                        >
-                      </span>
-                    </div>
+                      <v-divider class="my-6"></v-divider>
 
-                    <v-row class="mt-6">
-                      <v-col cols="12" sm="6" order="2" order-sm="1">
-                        <v-btn
-                          block
-                          color="secondary"
-                          size="large"
-                          height="50"
-                          variant="flat"
-                          class="back-button"
-                          @click="navigateToPrevious"
-                        >
-                          <v-icon start>mdi-arrow-left</v-icon>
-                          Back
-                        </v-btn>
-                      </v-col>
-                      <v-col cols="12" sm="6" order="1" order-sm="2">
-                        <v-btn
-                          block
-                          color="primary"
-                          size="large"
-                          height="50"
-                          variant="flat"
-                          type="submit"
-                          :loading="onboardingStore.isLoading"
-                          class="next-button"
-                        >
-                          {{ onboardingStore.isLoading ? 'Processing...' : 'Next' }}
-                          <v-icon end>mdi-arrow-right</v-icon>
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </v-form>
-                </v-card-text>
-              </v-card>
-              <div class="text-center mt-6 pb-4">
-                <span class="text-caption text-medium-emphasis d-block mb-2">Powered by</span>
-                <v-img
-                  :src="bigLogo"
-                  alt="Powered By"
-                  class="mx-auto logo-image"
-                  width="150"
-                  height="50"
-                  contain
-                />
-              </div>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-col>
+                      <div class="d-flex align-center mb-4 agreement-section">
+                        <v-checkbox
+                          v-model="formData.termsViewed"
+                          label="I agree to the"
+                          class="mr-2 mt-0 pt-0"
+                          hide-details
+                        ></v-checkbox>
+                        <span class="checkbox-label">
+                          <a href="#" class="text-decoration-none" @click.prevent="openTerms">
+                            Terms and Conditions</a
+                          >
+                        </span>
+                      </div>
 
-      <v-col cols="12" md="6" class="brand-section d-none d-md-flex">
-        <div class="brand-overlay"></div>
-      </v-col>
-    </v-row>
+                      <div class="d-flex align-center mb-6 agreement-section">
+                        <v-checkbox
+                          v-model="formData.financialAgreementViewed"
+                          label="I agree to the"
+                          class="mr-2 mt-0 pt-0"
+                          hide-details
+                        ></v-checkbox>
+                        <span class="checkbox-label">
+                          <a
+                            href="#"
+                            class="text-decoration-none"
+                            @click.prevent="openFinancialDeclaration"
+                          >
+                            Financial Declaration</a
+                          >
+                        </span>
+                      </div>
+
+                      <v-row class="mt-6">
+                        <v-col cols="12" sm="6" order="2" order-sm="1">
+                          <v-btn
+                            block
+                            color="secondary"
+                            size="large"
+                            height="50"
+                            variant="flat"
+                            class="back-button"
+                            @click="navigateToPrevious"
+                          >
+                            <v-icon start>mdi-arrow-left</v-icon>
+                            Back
+                          </v-btn>
+                        </v-col>
+                        <v-col cols="12" sm="6" order="1" order-sm="2">
+                          <v-btn
+                            block
+                            color="primary"
+                            size="large"
+                            height="50"
+                            variant="flat"
+                            type="submit"
+                            :loading="onboardingStore.isLoading"
+                            class="next-button"
+                          >
+                            {{ onboardingStore.isLoading ? 'Processing...' : 'Next' }}
+                            <v-icon end>mdi-arrow-right</v-icon>
+                          </v-btn>
+                        </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-card-text>
+                </v-card>
+                <div class="text-center mt-6 pb-4">
+                  <span class="text-caption text-medium-emphasis d-block mb-2">Powered by</span>
+                  <v-img
+                    :src="bigLogo"
+                    alt="Powered By"
+                    class="mx-auto logo-image"
+                    width="150"
+                    height="50"
+                    contain
+                  />
+                </div>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-col>
+
+        <v-col cols="12" md="6" class="brand-section d-none d-md-flex">
+          <div class="brand-overlay"></div>
+        </v-col>
+      </v-row>
+    </v-container>
 
     <v-dialog v-model="showTerms" max-width="600" persistent>
       <v-card class="rounded-lg">
@@ -456,7 +475,6 @@ basic info
         </v-card-text>
       </v-card>
     </v-dialog>
-  </v-container>
   </div>
 </template>
 
@@ -472,6 +490,8 @@ import FinancialDeclaration from '@/features/onboarding/components/FinancialDecl
 import PasswordStrengthMeter from '@/components/ui/PasswordStrengthMeter.vue';
 import SchoolNameAutocomplete from '@/components/ui/SchoolNameAutocomplete.vue';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
+import SaveIndicator from '@/components/SaveIndicator.vue';
+import DataRecoveryDialog from '@/components/DataRecoveryDialog.vue';
 
 // Static asset imports for logos
 import logoImage from '@/assets/Logo1.png';
@@ -505,6 +525,12 @@ const {
   clearPersistedFormState, // Function to clear saved form data
   clearErrors, // Function to clear all errors
   parseAndSetApiErrors, // Function to parse and set API errors
+  formState, // Reactive form state object
+  lastSaved, // Reactive last saved timestamp
+  saveError, // Reactive save error message
+  showRecoveryDialog, // Reactive show recovery dialog flag
+  restoreFromSaved, // Function to restore data from saved state
+  discardSavedData, // Function to discard saved data
 } = useBasicInfoFormManager();
 
 // Initialize stepper for progress tracking

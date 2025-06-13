@@ -1,4 +1,4 @@
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useSimpleFormValidation } from '@/shared/composables/useSimpleFormValidation.js';
 import { basicInfoSchema } from '@/features/onboarding/schemas/basic-info-schema.js';
 import { useDemoStore } from '@/store/demoStore';
@@ -225,20 +225,33 @@ export function useBasicInfoFormManager() {
 
   // Public API
   return {
-    // Reactive data
     formData,
     fieldErrors,
     formAlertError,
-    
-    // Validation functions
     validate,
     validateFormField,
+    clearPersistedFormState,
     clearErrors,
-    
-    // Error handling
     parseAndSetApiErrors,
     
-    // State management
-    clearPersistedFormState,
+    // Enhanced persistence properties
+    formState: computed(() => ({
+      isDirty: Object.keys(formData.value).length > 0,
+      isSaving: false,
+      isSubmitting: false,
+      hasErrors: Object.keys(fieldErrors.value).length > 0 || !!formAlertError.value,
+      canSubmit: Object.keys(fieldErrors.value).length === 0
+    })),
+    lastSaved: ref(null),
+    saveError: ref(null),
+    showRecoveryDialog: ref(false),
+    restoreFromSaved: () => {
+      // TODO: Implement recovery logic
+      console.log('Restore from saved not yet implemented');
+    },
+    discardSavedData: () => {
+      // TODO: Implement discard logic
+      console.log('Discard saved data not yet implemented');
+    }
   };
 } 
