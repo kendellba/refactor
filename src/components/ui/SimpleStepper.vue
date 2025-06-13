@@ -77,43 +77,47 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch } from 'vue';
+<script setup lang="ts">
+import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import type { StepItem, StepClickEvent, StepChangeEvent } from '../../types';
 
-const props = defineProps({
-  steps: {
-    type: Array,
-    required: true,
-    default: () => []
-  },
-  completedSteps: {
-    type: Array,
-    default: () => []
-  },
-  initialStep: {
-    type: Number,
-    default: 1
-  },
-  showNavigation: {
-    type: Boolean,
-    default: false
-  },
-  allowStepNavigation: {
-    type: Boolean,
-    default: true
-  }
+interface StepItemComputed {
+  title: string;
+  subtitle?: string;
+  value: number;
+}
+
+interface Props {
+  steps: StepItem[];
+  completedSteps?: (string | number)[];
+  initialStep?: number;
+  showNavigation?: boolean;
+  allowStepNavigation?: boolean;
+}
+
+interface Emits {
+  (e: 'step-change', event: StepChangeEvent): void;
+  (e: 'step-complete', event: { stepIndex: number; step: StepItem }): void;
+  (e: 'step-click', event: StepClickEvent): void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  completedSteps: () => [],
+  initialStep: 1,
+  showNavigation: false,
+  allowStepNavigation: true
 });
 
-const emit = defineEmits(['step-change', 'step-complete', 'step-click']);
+const emit = defineEmits<Emits>();
 
 const router = useRouter();
 const route = useRoute();
 
-const currentStep = ref(props.initialStep);
+const currentStep: Ref<number> = ref(props.initialStep);
 
 // Computed properties
-const stepItems = computed(() => {
+const stepItems: ComputedRef<StepItemComputed[]> = computed(() => {
   return props.steps.map((step, index) => ({
     title: step.title,
     subtitle: step.subtitle,
@@ -121,32 +125,32 @@ const stepItems = computed(() => {
   }));
 });
 
-const isStepComplete = (stepIndex) => {
+const isStepComplete = (stepIndex: number): boolean => {
   const step = props.steps[stepIndex];
   return props.completedSteps.includes(step.route || step.id || stepIndex);
 };
 
-const getStepColor = (stepIndex) => {
+const getStepColor = (stepIndex: number): 'success' | 'primary' | 'grey' => {
   if (isStepComplete(stepIndex)) return 'success';
   if (stepIndex + 1 === currentStep.value) return 'primary';
   return 'grey';
 };
 
-const getStepIcon = (stepIndex) => {
+const getStepIcon = (stepIndex: number): string => {
   const step = props.steps[stepIndex];
   if (isStepComplete(stepIndex)) return 'mdi-check';
   return step.icon || 'mdi-circle';
 };
 
-const getCurrentStepColor = () => {
+const getCurrentStepColor = (): 'success' | 'primary' | 'grey' => {
   return getStepColor(currentStep.value - 1);
 };
 
-const getCurrentStepIcon = () => {
+const getCurrentStepIcon = (): string => {
   return getStepIcon(currentStep.value - 1);
 };
 
-const getProgressColor = () => {
+const getProgressColor = (): 'success' | 'warning' | 'primary' => {
   const progress = (currentStep.value / props.steps.length) * 100;
   if (progress >= 80) return 'success';
   if (progress >= 50) return 'warning';
@@ -154,7 +158,7 @@ const getProgressColor = () => {
 };
 
 // Methods
-const handleStepClick = (stepIndex) => {
+const handleStepClick = (stepIndex: number): void => {
   if (!props.allowStepNavigation) return;
   
   const newStep = stepIndex + 1;
@@ -169,28 +173,28 @@ const handleStepClick = (stepIndex) => {
   }
 };
 
-const nextStep = () => {
+const nextStep = (): void => {
   if (currentStep.value < props.steps.length) {
     currentStep.value++;
     emitStepChange();
   }
 };
 
-const previousStep = () => {
+const previousStep = (): void => {
   if (currentStep.value > 1) {
     currentStep.value--;
     emitStepChange();
   }
 };
 
-const emitStepChange = () => {
+const emitStepChange = (): void => {
   const stepIndex = currentStep.value - 1;
   const step = props.steps[stepIndex];
   emit('step-change', { stepIndex, step, currentStep: currentStep.value });
 };
 
 // Watch for route changes to update current step
-watch(() => route.path, (newPath) => {
+watch(() => route.path, (newPath: string) => {
   const stepIndex = props.steps.findIndex(step => step.route === newPath);
   if (stepIndex >= 0) {
     currentStep.value = stepIndex + 1;

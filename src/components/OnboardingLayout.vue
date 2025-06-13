@@ -110,31 +110,26 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted, watch, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import OnboardingStepper from '@/components/ui/OnboardingStepper.vue';
 import { useOnboardingStepper } from '@/composables/useOnboardingStepper.js';
 import { useDemoStore } from '@/store/demoStore';
+import type { OnboardingStepperProps, StepItem, StepCompleteEvent, StepSaveData, VuetifyColor } from '@/types';
 
-const props = defineProps({
-  showStepper: {
-    type: Boolean,
-    default: true
-  },
-  showMobileNavigation: {
-    type: Boolean,
-    default: false
-  },
-  allowStepNavigation: {
-    type: Boolean,
-    default: true
-  },
-  showFloatingProgress: {
-    type: Boolean,
-    default: true
-  }
+interface UserProfile {
+  isMinor?: boolean;
+  hasForeignBankAccount?: boolean;
+  [key: string]: any;
+}
+
+const props = withDefaults(defineProps<OnboardingStepperProps>(), {
+  showStepper: true,
+  showMobileNavigation: false,
+  allowStepNavigation: true,
+  showFloatingProgress: true
 });
 
 const route = useRoute();
@@ -156,45 +151,60 @@ const {
   loadFromStorage,
   saveToStorage,
   ONBOARDING_STEPS
-} = useOnboardingStepper();
+} = useOnboardingStepper() as {
+  completedSteps: Ref<string[]>;
+  skippedSteps: Ref<string[]>;
+  currentStep: Ref<StepItem | null>;
+  progress: Ref<number>;
+  getVisibleSteps: (profile: UserProfile) => StepItem[];
+  markStepComplete: (route: string) => void;
+  markStepSkipped: (route: string) => void;
+  isStepComplete: (route: string) => boolean;
+  isStepSkipped: (route: string) => boolean;
+  navigateToStep: (route: string) => void;
+  saveStepData: (route: string, data: any) => void;
+  loadFromStorage: () => void;
+  saveToStorage: () => void;
+  ONBOARDING_STEPS: StepItem[];
+};
 
 // Local state
-const showProgressDialog = ref(false);
-const userProfile = ref({});
+const showProgressDialog = ref<boolean>(false);
+const userProfile = ref<UserProfile>({});
 
 // Computed properties
-const isMobile = computed(() => mobile.value);
+const isMobile = computed((): boolean => mobile.value);
 
-const visibleSteps = computed(() => {
+const visibleSteps = computed((): StepItem[] => {
   return getVisibleSteps(userProfile.value);
 });
 
-const progressColor = computed(() => {
+const progressColor = computed((): VuetifyColor => {
   if (progress.value >= 80) return 'success';
   if (progress.value >= 50) return 'warning';
   return 'primary';
 });
 
-const progressIcon = computed(() => {
+const progressIcon = computed((): string => {
   if (progress.value >= 100) return 'mdi-check-circle';
   if (progress.value >= 80) return 'mdi-progress-check';
   return 'mdi-progress-clock';
 });
 
 // Methods
-const handleStepChange = ({ stepIndex, step, route: stepRoute }) => {
+const handleStepChange = ({ stepIndex, step, route: stepRoute }: { stepIndex: number; step: StepItem; route: string }): void => {
   console.log('Step changed:', { stepIndex, step, stepRoute });
   
   // Auto-save progress
   saveToStorage();
 };
 
-const handleStepComplete = ({ step }) => {
+const handleStepComplete = ({ step }: StepCompleteEvent): void => {
   markStepComplete(step.route);
   saveToStorage();
 };
 
-const markCurrentStepComplete = (data = {}) => {
+const markCurrentStepComplete = (data: StepSaveData = {}): void => {
   if (currentStep.value) {
     markStepComplete(currentStep.value.route);
     if (Object.keys(data).length > 0) {
@@ -204,7 +214,7 @@ const markCurrentStepComplete = (data = {}) => {
   }
 };
 
-const markCurrentStepSkipped = (reason = '') => {
+const markCurrentStepSkipped = (reason = ''): void => {
   if (currentStep.value) {
     markStepSkipped(currentStep.value.route);
     if (reason) {
@@ -214,33 +224,33 @@ const markCurrentStepSkipped = (reason = '') => {
   }
 };
 
-const handleSaveData = (data) => {
+const handleSaveData = (data: StepSaveData): void => {
   if (currentStep.value) {
     saveStepData(currentStep.value.route, data);
     saveToStorage();
   }
 };
 
-const toggleProgressDetails = () => {
+const toggleProgressDetails = (): void => {
   showProgressDialog.value = !showProgressDialog.value;
 };
 
-const getStepStatusIcon = (step) => {
+const getStepStatusIcon = (step: StepItem): string => {
   if (isStepComplete(step.route)) return 'mdi-check-circle';
   if (isStepSkipped(step.route)) return 'mdi-skip-next';
   if (isCurrentStepRoute(step.route)) return 'mdi-play-circle';
   return 'mdi-circle-outline';
 };
 
-const getStepStatusColor = (step) => {
+const getStepStatusColor = (step: StepItem): VuetifyColor => {
   if (isStepComplete(step.route)) return 'success';
   if (isStepSkipped(step.route)) return 'warning';
   if (isCurrentStepRoute(step.route)) return 'primary';
   return 'grey';
 };
 
-const getStepListItemClass = (step) => {
-  const classes = [];
+const getStepListItemClass = (step: StepItem): string => {
+  const classes: string[] = [];
   
   if (isCurrentStepRoute(step.route)) {
     classes.push('current-step');
@@ -257,11 +267,11 @@ const getStepListItemClass = (step) => {
   return classes.join(' ');
 };
 
-const isCurrentStepRoute = (stepRoute) => {
+const isCurrentStepRoute = (stepRoute: string): boolean => {
   return route.path === stepRoute;
 };
 
-const navigateToStepIfAllowed = (step) => {
+const navigateToStepIfAllowed = (step: StepItem): void => {
   if (props.allowStepNavigation) {
     navigateToStep(step.route);
     showProgressDialog.value = false;
@@ -269,10 +279,10 @@ const navigateToStepIfAllowed = (step) => {
 };
 
 // Update user profile based on demo store
-const updateUserProfile = () => {
-  const profile = {
-    isMinor: demoStore.userAge < 18,
-    hasForeignBankAccount: demoStore.hasForeignBankAccount || false,
+const updateUserProfile = (): void => {
+  const profile: UserProfile = {
+    isMinor: (demoStore as any).userAge < 18,
+    hasForeignBankAccount: (demoStore as any).hasForeignBankAccount || false,
     // Add other profile properties as needed
   };
   
@@ -280,7 +290,7 @@ const updateUserProfile = () => {
 };
 
 // Watch for demo store changes
-watch(() => [demoStore.userAge, demoStore.hasForeignBankAccount], () => {
+watch(() => [(demoStore as any).userAge, (demoStore as any).hasForeignBankAccount], () => {
   updateUserProfile();
 }, { deep: true });
 

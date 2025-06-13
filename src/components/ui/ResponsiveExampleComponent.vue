@@ -70,10 +70,9 @@
   </v-container>
 </template>
 
-<script>
-export default {
-  name: 'ResponsiveExampleComponent',
-};
+<script setup lang="ts">
+// ResponsiveExampleComponent - TypeScript converted
+// No props or reactive data needed for this example component
 </script>
 
 <style scoped>

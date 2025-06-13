@@ -71,17 +71,17 @@
   </v-container>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted, type Ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/authStore';
-import logoImage from '@/assets/Logo1.png'; // Adjusted path assuming assets are globally accessible
-import bigLogo from '@/assets/bigLogo.png'; // Adjusted path
+import logoImage from '@/assets/Logo1.png';
+import bigLogo from '@/assets/bigLogo.png';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const isLoading = ref(false);
-const isLoginVerification = ref(false);
+const isLoading: Ref<boolean> = ref(false);
+const isLoginVerification: Ref<boolean> = ref(false);
 
 onMounted(() => {
   // Check verification source from sessionStorage
@@ -106,7 +106,7 @@ onMounted(() => {
   }
 });
 
-const handleNext = async () => {
+const handleNext = async (): Promise<void> => {
   isLoading.value = true;
 
   try {

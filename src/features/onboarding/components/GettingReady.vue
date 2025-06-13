@@ -112,7 +112,7 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
@@ -120,11 +120,11 @@ import { GETTING_READY_ITEMS } from '@/features/onboarding/constants/getting-rea
 
 const router = useRouter();
 
-const navigateToNext = () => {
+const navigateToNext = (): void => {
   router.push('/basic-info');
 };
 
-const navigateToPrevious = () => {
+const navigateToPrevious = (): void => {
   router.go(-1);
 };
 

@@ -51,8 +51,12 @@
   </div>
 </template>
 
-<script setup>
-defineEmits(['close']);
+<script setup lang="ts">
+interface Emits {
+  'close': [];
+}
+
+defineEmits<Emits>();
 </script>
 
 <style scoped>

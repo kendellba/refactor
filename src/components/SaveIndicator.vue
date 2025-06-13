@@ -25,49 +25,37 @@
   </transition>
 </template>
 
-<script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+<script setup lang="ts">
+import { computed, ref, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
+import type { SaveStatus, DateOrNumber, VuetifyVariant } from '../types';
 
-const props = defineProps({
-  isDirty: {
-    type: Boolean,
-    default: false
-  },
-  isSaving: {
-    type: Boolean,
-    default: false
-  },
-  lastSaved: {
-    type: [Date, Number],
-    default: null
-  },
-  saveError: {
-    type: String,
-    default: null
-  },
-  floating: {
-    type: Boolean,
-    default: false
-  },
-  variant: {
-    type: String,
-    default: 'tonal'
-  },
-  autoHide: {
-    type: Boolean,
-    default: true
-  },
-  hideDelay: {
-    type: Number,
-    default: 3000
-  }
+interface Props {
+  isDirty?: boolean;
+  isSaving?: boolean;
+  lastSaved?: DateOrNumber | null;
+  saveError?: string | null;
+  floating?: boolean;
+  variant?: VuetifyVariant;
+  autoHide?: boolean;
+  hideDelay?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isDirty: false,
+  isSaving: false,
+  lastSaved: null,
+  saveError: null,
+  floating: false,
+  variant: 'tonal',
+  autoHide: true,
+  hideDelay: 3000
 });
 
-const showIndicator = ref(false);
-let hideTimeout = null;
-let timeUpdateInterval = null;
+const showIndicator: Ref<boolean> = ref(false);
+let hideTimeout: NodeJS.Timeout | null = null;
+let timeUpdateInterval: NodeJS.Timeout | null = null;
 
-const status = computed(() => {
+const status = computed((): SaveStatus => {
   if (props.isSaving) {
     return { 
       text: 'Saving...', 
@@ -107,12 +95,12 @@ const status = computed(() => {
   };
 });
 
-const timeAgo = computed(() => {
+const timeAgo = computed((): string => {
   if (!props.lastSaved) return '';
   
   const now = new Date();
   const saved = new Date(props.lastSaved);
-  const diffMs = now - saved;
+  const diffMs = now.getTime() - saved.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   
@@ -124,18 +112,18 @@ const timeAgo = computed(() => {
   return `${diffHour}h ago`;
 });
 
-const updateIndicatorVisibility = () => {
+const updateIndicatorVisibility = (): void => {
   // Always show if there's an error or if saving
   if (props.saveError || props.isSaving) {
     showIndicator.value = true;
-    clearTimeout(hideTimeout);
+    if (hideTimeout) clearTimeout(hideTimeout);
     return;
   }
   
   // Show if there are unsaved changes
   if (props.isDirty) {
     showIndicator.value = true;
-    clearTimeout(hideTimeout);
+    if (hideTimeout) clearTimeout(hideTimeout);
     return;
   }
   
@@ -144,7 +132,7 @@ const updateIndicatorVisibility = () => {
     showIndicator.value = true;
     
     if (props.autoHide) {
-      clearTimeout(hideTimeout);
+      if (hideTimeout) clearTimeout(hideTimeout);
       hideTimeout = setTimeout(() => {
         showIndicator.value = false;
       }, props.hideDelay);
@@ -167,13 +155,13 @@ watch([
 onMounted(() => {
   // Update time display every 30 seconds
   timeUpdateInterval = setInterval(() => {
-    // Force reactivity update
+    // Force reactivity update - the computed will re-evaluate
   }, 30000);
 });
 
 onBeforeUnmount(() => {
-  clearTimeout(hideTimeout);
-  clearInterval(timeUpdateInterval);
+  if (hideTimeout) clearTimeout(hideTimeout);
+  if (timeUpdateInterval) clearInterval(timeUpdateInterval);
 });
 </script>
 

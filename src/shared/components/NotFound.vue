@@ -59,7 +59,7 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 </script>

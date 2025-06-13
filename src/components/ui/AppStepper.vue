@@ -101,50 +101,45 @@
   </div>
 </template>
 
-<script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+<script setup lang="ts">
+import { ref, type Ref } from 'vue';
+import type { StepItem } from '../../types';
 
-const props = defineProps({
-  steps: {
-    type: Array,
-    required: true,
-    validator: (steps) => {
-      return steps.every(step => 
-        typeof step.title === 'string' &&
-        typeof step.icon === 'string' &&
-        (!step.subtitle || typeof step.subtitle === 'string')
-      );
-    }
-  },
-  isMobile: {
-    type: Boolean,
-    default: false
-  },
-  initialStep: {
-    type: Number,
-    default: 1
-  }
+interface Props {
+  steps: StepItem[];
+  isMobile?: boolean;
+  initialStep?: number;
+}
+
+interface Emits {
+  (e: 'update:step', step: number): void;
+  (e: 'complete'): void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isMobile: false,
+  initialStep: 1
 });
 
-const emit = defineEmits(['update:step', 'complete']);
+const emit = defineEmits<Emits>();
 
-const currentStep = ref(props.initialStep);
+const currentStep: Ref<number> = ref(props.initialStep);
 
-const nextStep = () => {
+const nextStep = (): void => {
   if (currentStep.value < props.steps.length) {
     currentStep.value++;
     emit('update:step', currentStep.value);
   }
 };
 
-const previousStep = () => {
+const previousStep = (): void => {
   if (currentStep.value > 1) {
     currentStep.value--;
     emit('update:step', currentStep.value);
   }
 };
 
-const complete = () => {
+const complete = (): void => {
   emit('complete');
 };
 </script>

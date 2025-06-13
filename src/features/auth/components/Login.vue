@@ -119,9 +119,10 @@
   </v-container>
 </template>
 
-<script setup>
-import { watch } from 'vue';
+<script setup lang="ts">
+import { type Ref } from 'vue';
 import { useLoginFormManager } from '@/features/auth/composables/useLoginFormManager.js';
+import type { LoginFormData, FormErrors } from '@/types';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 
@@ -135,8 +136,17 @@ const {
   forgotPassword,
   navigateToSignup,
   validateField,
-} = useLoginFormManager();
-
+} = useLoginFormManager() as {
+  formData: Ref<LoginFormData>;
+  showPassword: Ref<boolean>;
+  errors: Ref<FormErrors>;
+  isLoading: Ref<boolean>;
+  errorMessage: Ref<string | null>;
+  handleLoginSubmit: () => Promise<void>;
+  forgotPassword: () => void;
+  navigateToSignup: () => void;
+  validateField: (field: string) => void;
+};
 </script>
 
 <style scoped>

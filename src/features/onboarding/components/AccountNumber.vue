@@ -21,8 +21,8 @@
               <v-card class="form-card" elevation="0" rounded="lg">
                 <v-card-text>
                   <v-form @submit.prevent="handleSubmit">
-                    <v-alert v-if="onboardingStore.apiSubmitError || formManager.serverError.value" type="error" variant="tonal" class="mb-4">
-                      {{ onboardingStore.apiSubmitError || formManager.serverError.value }}
+                    <v-alert v-if="onboardingStore.apiSubmitError" type="error" variant="tonal" class="mb-4">
+                      {{ onboardingStore.apiSubmitError }}
                     </v-alert>
 
                     <v-text-field
@@ -30,11 +30,14 @@
                       label="Account Number"
                       placeholder="Enter your account number"
                       variant="outlined"
-                      prepend-inner-icon="mdi-pound"
+                      density="comfortable"
+                      bg-color="grey-lighten-5"
+                      prepend-inner-icon="mdi-bank"
                       :error-messages="formManager.fieldErrors.value.account_number"
-                      @blur="formManager.validateField('account_number')"
+                      @blur="formManager.validateField && formManager.validateField('account_number')"
+                      required
                     >
-                      <template #hint> For testing, use account number: 1234567890 </template>
+                      <template #details> For testing, use account number: 1234567890 </template>
                     </v-text-field>
 
                     <v-row class="mt-6">
@@ -94,25 +97,26 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
 import { useAccountNumberFormManager } from '@/features/onboarding/composables/useAccountNumberFormManager.js';
 import { useDemoStore } from '@/store/demoStore';
+import type { AccountNumberFormData } from '@/types';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 
 const router = useRouter();
 const onboardingStore = useOnboardingStore();
-const demoStore = useDemoStore();
-const formManager = useAccountNumberFormManager();
+const demoStore = useDemoStore() as any; // Type assertion for store methods
+const formManager = useAccountNumberFormManager() as any;
 
-const handleSubmit = async () => {
+const handleSubmit = async (): Promise<void> => {
   formManager.clearErrors();
   onboardingStore.apiSubmitError = null;
 
-  const isValid = await formManager.validate();
-  if (!isValid) {
+  const result = await formManager.validate(formManager.formData.value);
+  if (!result.isValid) {
     return;
   }
   
@@ -120,24 +124,28 @@ const handleSubmit = async () => {
   // const result = await onboardingStore.verifyAccountNumberAction(formManager.formData.value);
   
   // Simulating success for now
-  const result = { success: true };
+  const submitResult = { success: true } as {
+    success: boolean;
+    fieldMessages?: any;
+    generalMessage?: string;
+  };
 
-  if (result.success) {
+  if (submitResult.success) {
     demoStore.$patch({
       accountNumber: formManager.formData.value.account_number,
     });
     router.push('/due-diligence');
   } else {
-    if (result.fieldMessages) {
-      formManager.fieldErrors.value = result.fieldMessages;
+    if (submitResult.fieldMessages) {
+      formManager.fieldErrors.value = submitResult.fieldMessages;
     }
-    if (result.generalMessage) {
-      onboardingStore.apiSubmitError = result.generalMessage;
+    if (submitResult.generalMessage) {
+      onboardingStore.apiSubmitError = submitResult.generalMessage;
     }
   }
 };
 
-const navigateToPrevious = () => {
+const navigateToPrevious = (): void => {
   router.go(-1);
 };
 </script>

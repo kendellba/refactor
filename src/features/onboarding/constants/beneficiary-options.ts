@@ -1,0 +1,50 @@
+import type { StringArray, OptionArray } from '../../../types';
+
+export const RELATIONSHIP_OPTIONS: StringArray = [
+  "Spouse",
+  "Child",
+  "Parent",
+  "Sibling",
+  "Grandchild",
+  "Grandparent",
+  "Aunt/Uncle",
+  "Niece/Nephew",
+  "Cousin",
+  "In-law",
+  "Friend",
+  "Caregiver",
+  "Legal Guardian",
+  "Attorney",
+  "Financial Advisor",
+  "Accountant",
+  "Trustee",
+  "Business Partner",
+  "Healthcare Provider",
+  "Unrelated Guardian",
+  "Domestic Partner",
+  "Fiancé/Fiancée",
+  "Former Spouse",
+  "Godchild",
+  "Godparent",
+  "Step-child",
+  "Step-parent",
+  "Step-sibling",
+  "Foster Child",
+  "Foster Parent",
+  "Dependent",
+  "Beneficiary",
+  "Estate",
+  "Charity/Organization",
+  "Trust",
+  "Executor",
+  "Power of Attorney",
+  "Conservator",
+  "Guardian ad Litem",
+  "Ward"
+] as const;
+
+export const BENEFICIARY_ID_TYPES: OptionArray = [
+  { title: 'Passport', value: 'Passport' },
+  { title: 'National ID', value: 'National ID' },
+  { title: 'Driver\'s License', value: 'Drivers License' }, // Note: value was 'Drivers License' in component
+] as const; 

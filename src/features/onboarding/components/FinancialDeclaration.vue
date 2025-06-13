@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineEmits(['close']);
 </script>
 

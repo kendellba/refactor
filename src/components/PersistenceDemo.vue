@@ -245,15 +245,44 @@
   </v-container>
 </template>
 
-<script setup>
-import { ref, reactive, computed } from 'vue';
+<script setup lang="ts">
+import { ref, reactive, computed, type Ref, type ComputedRef } from 'vue';
 import { useEnhancedFormManager } from '@/composables/useEnhancedFormManager.js';
 import SaveIndicator from '@/components/SaveIndicator.vue';
 import DataRecoveryDialog from '@/components/DataRecoveryDialog.vue';
+import type { DemoFormData } from '@/types';
 
-const showDraftHistory = ref(false);
+interface FormState {
+  isDirty: boolean;
+  isSaving: boolean;
+  isSubmitting: boolean;
+}
+
+interface DraftItem {
+  id: string;
+  metadata?: {
+    timestamp: number;
+  };
+}
+
+const showDraftHistory: Ref<boolean> = ref(false);
 
 // Initialize enhanced form manager with demo configuration
+const formManagerResult = useEnhancedFormManager({
+  initialData: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    ssn: ''
+  },
+  sensitiveFields: ['ssn'],
+  autoSaveInterval: 2000,
+  enableEncryption: true,
+  storageKey: 'persistence-demo'
+});
+
+// Extract with proper typing
 const {
   formData,
   fieldErrors,
@@ -276,29 +305,17 @@ const {
   getDraftHistory,
   forceSave,
   clearSavedData
-} = useEnhancedFormManager({
-  initialData: {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    ssn: ''
-  },
-  sensitiveFields: ['ssn'],
-  autoSaveInterval: 2000,
-  enableEncryption: true,
-  storageKey: 'persistence-demo'
-});
+} = formManagerResult;
 
 // Computed properties
-const isDirty = computed(() => formState.value.isDirty);
-const draftHistory = computed(() => getDraftHistory());
-const saveError = computed(() => null); // Placeholder for demo
+const isDirty: ComputedRef<boolean> = computed(() => formState.value.isDirty);
+const draftHistory: ComputedRef<DraftItem[]> = computed(() => getDraftHistory() as DraftItem[]);
+const saveError: ComputedRef<null> = computed(() => null); // Placeholder for demo
 
 // Methods
-const handleSubmit = async () => {
+const handleSubmit = async (): Promise<void> => {
   try {
-    await submitForm(async (data) => {
+    await submitForm(async (data: any) => {
       // Simulate API call
       console.log('Submitting data:', data);
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -307,26 +324,26 @@ const handleSubmit = async () => {
     
     // Show success message
     alert('Form submitted successfully!');
-  } catch (error) {
+  } catch (error: any) {
     console.error('Submission failed:', error);
     alert('Submission failed: ' + error.message);
   }
 };
 
-const restoreFromDraft = (draftId) => {
+const restoreFromDraft = (draftId: string): void => {
   // This would be implemented by the enhanced form manager
   console.log('Restoring from draft:', draftId);
   showDraftHistory.value = false;
 };
 
-const formatDate = (timestamp) => {
+const formatDate = (timestamp?: number): string => {
   if (!timestamp) return 'Unknown';
   return new Date(timestamp).toLocaleString();
 };
 
-let autoSaveTimeout = null;
+let autoSaveTimeout: NodeJS.Timeout | null = null;
 
-const triggerAutoSave = () => {
+const triggerAutoSave = (): void => {
   formState.value.isDirty = true;
   
   // Clear existing timeout
@@ -340,7 +357,7 @@ const triggerAutoSave = () => {
   }, 2000);
 };
 
-const performAutoSave = () => {
+const performAutoSave = (): void => {
   formState.value.isSaving = true;
   
   // Simulate save operation
@@ -356,9 +373,9 @@ const performAutoSave = () => {
   }, 500);
 };
 
-const resetForm = () => {
+const resetFormData = (): void => {
   Object.keys(formData.value).forEach(key => {
-    formData.value[key] = '';
+    (formData.value as any)[key] = '';
   });
   localStorage.removeItem('persistence-demo');
   formState.value.isDirty = false;
@@ -366,7 +383,7 @@ const resetForm = () => {
 };
 
 // Load saved data on mount
-const loadSavedData = () => {
+const loadSavedData = (): void => {
   try {
     const saved = localStorage.getItem('persistence-demo');
     if (saved) {

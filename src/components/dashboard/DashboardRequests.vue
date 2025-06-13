@@ -13,13 +13,12 @@
   </v-col>
 </template>
 
-<script setup>
-import { defineProps } from 'vue';
+<script setup lang="ts">
+interface Props {
+  isMobile?: boolean;
+}
 
-defineProps({
-  isMobile: {
-    type: Boolean,
-    default: false,
-  },
+withDefaults(defineProps<Props>(), {
+  isMobile: false,
 });
 </script>

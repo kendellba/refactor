@@ -64,49 +64,51 @@
   </v-dialog>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue';
+<script setup lang="ts">
+import { ref, watch, type Ref } from 'vue';
+import type { DateOrNumber } from '../types';
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  lastSaved: {
-    type: [Date, Number],
-    default: null
-  }
+interface Props {
+  show?: boolean;
+  lastSaved?: DateOrNumber | null;
+}
+
+interface Emits {
+  (e: 'restore'): void;
+  (e: 'clear'): void;
+  (e: 'close'): void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  show: false,
+  lastSaved: null
 });
 
-const emit = defineEmits([
-  'restore',
-  'clear',
-  'close'
-]);
+const emit = defineEmits<Emits>();
 
-const showDialog = ref(false);
-const isRestoring = ref(false);
-const isClearing = ref(false);
+const showDialog: Ref<boolean> = ref(false);
+const isRestoring: Ref<boolean> = ref(false);
+const isClearing: Ref<boolean> = ref(false);
 
 // Watch for show prop changes
-watch(() => props.show, (newValue) => {
+watch(() => props.show, (newValue: boolean) => {
   showDialog.value = newValue;
 });
 
 // Methods
-const formatTimestamp = (timestamp) => {
+const formatTimestamp = (timestamp: DateOrNumber | null): string => {
   if (!timestamp) return 'Unknown time';
   
   const date = new Date(timestamp);
   return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString();
 };
 
-const timeAgo = (timestamp) => {
+const timeAgo = (timestamp: DateOrNumber | null): string => {
   if (!timestamp) return 'unknown time';
   
   const date = new Date(timestamp);
   const now = new Date();
-  const diffMs = now - date;
+  const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.round(diffMs / (1000 * 60));
   
   if (diffMins < 1) return 'just now';
@@ -118,7 +120,7 @@ const timeAgo = (timestamp) => {
   return `${Math.round(diffHours / 24)}d ago`;
 };
 
-const restoreData = async () => {
+const restoreData = async (): Promise<void> => {
   try {
     isRestoring.value = true;
     emit('restore');
@@ -132,7 +134,7 @@ const restoreData = async () => {
   }
 };
 
-const startFresh = async () => {
+const startFresh = async (): Promise<void> => {
   try {
     isClearing.value = true;
     emit('clear');

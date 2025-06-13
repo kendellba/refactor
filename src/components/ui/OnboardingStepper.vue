@@ -1,45 +1,44 @@
 <template>
   <div class="onboarding-stepper">
     <!-- Desktop Stepper -->
-    <v-stepper 
+    <v-stepper
       v-if="!isMobile"
-      v-model="currentStepNumber"
-      :items="stepItems"
-      class="stepper-container"
+      :model-value="currentStepNumber"
+      alt-labels
       hide-actions
       flat
     >
-      <template v-for="(step, index) in steps" :key="step.route" #[`item.${index + 1}`]="{ item }">
-        <v-stepper-item
-          :value="index + 1"
-          :complete="isStepComplete(index)"
-          :editable="isStepAccessible(index)"
-          class="stepper-item"
-          @click="navigateToStep(index)"
-        >
-          <template #title>
-            <span class="step-title">{{ step.title }}</span>
-          </template>
-          
-          <template #subtitle>
-            <span class="step-subtitle">{{ step.subtitle }}</span>
-          </template>
-          
-          <template #icon>
-            <v-avatar 
-              :color="getStepColor(index)" 
-              size="32"
-              class="step-avatar"
-            >
-              <v-icon 
-                :icon="getStepIcon(index)" 
-                size="18"
-                :color="getStepIconColor(index)"
-              />
-            </v-avatar>
-          </template>
-        </v-stepper-item>
-      </template>
+      <v-stepper-item
+        v-for="(step, index) in steps"
+        :key="step.route"
+        :value="index + 1"
+        :complete="isStepComplete(index)"
+        :editable="isStepAccessible(index)"
+        class="stepper-item"
+        @click="navigateToStep(index)"
+      >
+        <template #title>
+          <span class="step-title">{{ step.title }}</span>
+        </template>
+        
+        <template #subtitle>
+          <span class="step-subtitle">{{ step.subtitle }}</span>
+        </template>
+        
+        <template #icon>
+          <v-avatar 
+            :color="getStepColor(index)" 
+            size="32"
+            class="step-avatar"
+          >
+            <v-icon 
+              :icon="getStepIcon(index)" 
+              size="18"
+              :color="getStepIconColor(index)"
+            />
+          </v-avatar>
+        </template>
+      </v-stepper-item>
     </v-stepper>
 
     <!-- Mobile Progress Indicator -->
@@ -120,48 +119,45 @@
   </div>
 </template>
 
-<script setup>
-import { computed, onMounted, watch } from 'vue';
+<script setup lang="ts">
+import { computed, onMounted, watch, type ComputedRef } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useDisplay } from 'vuetify';
+import type { OnboardingStepperData, StepItem, VuetifyColor } from '@/types';
 
-const props = defineProps({
-  steps: {
-    type: Array,
-    required: true,
-    default: () => []
-  },
-  completedSteps: {
-    type: Array,
-    default: () => []
-  },
-  showMobileNavigation: {
-    type: Boolean,
-    default: false
-  },
-  allowStepNavigation: {
-    type: Boolean,
-    default: true
-  }
+interface StepperItem {
+  title: string;
+  subtitle: string;
+  value: number;
+}
+
+const props = withDefaults(defineProps<OnboardingStepperData>(), {
+  steps: () => [],
+  completedSteps: () => [],
+  showMobileNavigation: false,
+  allowStepNavigation: true
 });
 
-const emit = defineEmits(['step-change', 'step-complete']);
+const emit = defineEmits<{
+  'step-change': [event: { stepIndex: number; step: StepItem; route: string }];
+  'step-complete': [event: { stepIndex: number; step: StepItem }];
+}>();
 
 const router = useRouter();
 const route = useRoute();
 const { mobile } = useDisplay();
 
-const isMobile = computed(() => mobile.value);
+const isMobile: ComputedRef<boolean> = computed(() => mobile.value);
 
 // Find current step based on route
-const currentStepNumber = computed(() => {
+const currentStepNumber: ComputedRef<number> = computed(() => {
   const currentRoute = route.path;
   const stepIndex = props.steps.findIndex(step => step.route === currentRoute);
   return stepIndex >= 0 ? stepIndex + 1 : 1;
 });
 
 // Convert steps to stepper items format
-const stepItems = computed(() => {
+const stepItems: ComputedRef<StepperItem[]> = computed(() => {
   return props.steps.map((step, index) => ({
     title: step.title,
     subtitle: step.subtitle,
@@ -170,18 +166,18 @@ const stepItems = computed(() => {
 });
 
 // Get current step object
-const getCurrentStep = () => {
+const getCurrentStep = (): StepItem | undefined => {
   return props.steps[currentStepNumber.value - 1];
 };
 
 // Check if step is complete
-const isStepComplete = (stepIndex) => {
+const isStepComplete = (stepIndex: number): boolean => {
   const step = props.steps[stepIndex];
   return props.completedSteps.includes(step.route);
 };
 
 // Check if step is accessible
-const isStepAccessible = (stepIndex) => {
+const isStepAccessible = (stepIndex: number): boolean => {
   if (!props.allowStepNavigation) return false;
   
   // Current step is always accessible
@@ -199,12 +195,12 @@ const isStepAccessible = (stepIndex) => {
 };
 
 // Check if this is the current step
-const isCurrentStep = (stepIndex) => {
+const isCurrentStep = (stepIndex: number): boolean => {
   return stepIndex === currentStepNumber.value - 1;
 };
 
 // Get step color based on status
-const getStepColor = (stepIndex) => {
+const getStepColor = (stepIndex: number): VuetifyColor => {
   if (isStepComplete(stepIndex)) return 'success';
   if (isCurrentStep(stepIndex)) return 'primary';
   if (isStepAccessible(stepIndex)) return 'grey-lighten-1';
@@ -212,7 +208,7 @@ const getStepColor = (stepIndex) => {
 };
 
 // Get step icon based on status
-const getStepIcon = (stepIndex) => {
+const getStepIcon = (stepIndex: number): string => {
   const step = props.steps[stepIndex];
   if (isStepComplete(stepIndex)) return 'mdi-check';
   if (isCurrentStep(stepIndex)) return step.icon || 'mdi-circle';
@@ -220,24 +216,24 @@ const getStepIcon = (stepIndex) => {
 };
 
 // Get step icon color
-const getStepIconColor = (stepIndex) => {
+const getStepIconColor = (stepIndex: number): string => {
   if (isStepComplete(stepIndex)) return 'white';
   if (isCurrentStep(stepIndex)) return 'white';
   return 'grey-darken-1';
 };
 
 // Get current step color
-const getCurrentStepColor = () => {
+const getCurrentStepColor = (): VuetifyColor => {
   return getStepColor(currentStepNumber.value - 1);
 };
 
 // Get current step icon
-const getCurrentStepIcon = () => {
+const getCurrentStepIcon = (): string => {
   return getStepIcon(currentStepNumber.value - 1);
 };
 
 // Get progress color based on completion
-const getProgressColor = () => {
+const getProgressColor = (): VuetifyColor => {
   const completionRate = props.completedSteps.length / props.steps.length;
   if (completionRate >= 0.8) return 'success';
   if (completionRate >= 0.5) return 'warning';
@@ -245,7 +241,7 @@ const getProgressColor = () => {
 };
 
 // Navigate to specific step
-const navigateToStep = (stepIndex) => {
+const navigateToStep = (stepIndex: number): void => {
   if (!isStepAccessible(stepIndex)) return;
   
   const step = props.steps[stepIndex];
@@ -261,7 +257,7 @@ const navigateToStep = (stepIndex) => {
 };
 
 // Watch for route changes to emit step change events
-watch(() => route.path, (newPath, oldPath) => {
+watch(() => route.path, (newPath: string, oldPath: string) => {
   if (newPath !== oldPath) {
     const stepIndex = props.steps.findIndex(step => step.route === newPath);
     if (stepIndex >= 0) {

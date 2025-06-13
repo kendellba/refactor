@@ -159,18 +159,27 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
 import { useMembershipDeclarationFormManager } from '@/features/onboarding/composables/useMembershipDeclarationFormManager.js';
 import logoImage from '@/assets/Logo1.png';
+import bigLogo from '@/assets/bigLogo.png';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
 import {
   useCompleteOnboardingStepper,
   COMPLETE_ONBOARDING_STEPS,
 } from '@/composables/useCompleteOnboardingStepper.js';
 // No direct use of useDemoStore or post service needed here anymore
+
+// Define form data interface
+interface MembershipDeclarationFormData {
+  isMemberOfAnotherCreditUnion: string;
+  creditUnionName: string;
+  isServingOnBoard: string;
+  creditUnionBoardName: string;
+}
 
 const router = useRouter();
 const onboardingStore = useOnboardingStore();
@@ -211,9 +220,9 @@ const handleSubmit = async () => {
     // General API error is already set in onboardingStore.apiSubmitError
     // Field-specific API errors are in onboardingStore.apiFieldErrors
     // We might need to map them to formManager.fieldErrors if the template relies on it
-    if (result.fieldMessages) {
-      for (const key in result.fieldMessages) {
-        formManager.fieldErrors.value[key] = result.fieldMessages[key];
+    if ((result as any).fieldMessages) {
+      for (const key in (result as any).fieldMessages) {
+        formManager.fieldErrors.value[key] = (result as any).fieldMessages[key];
       }
     }
   }
@@ -276,6 +285,12 @@ onMounted(() => {
   // const initialData = onboardingStore.getMembershipDeclarationData();
   // if(initialData) formManager.formData.value = { ...formManager.formData.value, ...initialData };
 });
+
+interface Emits {
+  'close': [];
+}
+
+defineEmits<Emits>();
 </script>
 
 <style scoped>
@@ -398,3 +413,4 @@ onMounted(() => {
   }
 }
 </style>
+

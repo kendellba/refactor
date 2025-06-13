@@ -525,7 +525,7 @@ import { countryList } from '@/features/onboarding/constants/address-options.js'
 import { RELATIONSHIP_OPTIONS, BENEFICIARY_ID_TYPES } from '@/features/onboarding/constants/beneficiary-options.js';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
-import FormFieldError from '@/components/ui/FormFieldError.vue';
+// FormFieldError removed
 import { useDemoStore } from '@/store/demoStore';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
 import {

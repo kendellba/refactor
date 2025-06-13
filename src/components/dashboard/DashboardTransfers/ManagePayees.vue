@@ -44,20 +44,25 @@
   </div>
 </template>
 
-<script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+<script setup lang="ts">
+import { ref, type Ref } from 'vue';
 
-defineProps({
-  isMobile: {
-    type: Boolean,
-    default: false,
-  },
+interface Props {
+  isMobile?: boolean;
+}
+
+interface Emits {
+  'back': [];
+}
+
+withDefaults(defineProps<Props>(), {
+  isMobile: false,
 });
 
-const emit = defineEmits(['back']);
-const isOpen = ref(true);
+const emit = defineEmits<Emits>();
+const isOpen: Ref<boolean> = ref(true);
 
-const closeForm = () => {
+const closeForm = (): void => {
   isOpen.value = false;
   emit('back');
 };

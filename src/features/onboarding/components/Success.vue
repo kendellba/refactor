@@ -140,30 +140,48 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { type Ref } from 'vue';
 import { useSuccessPageManager } from '@/features/onboarding/composables/useSuccessPageManager.js';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
 import { useCompleteOnboardingStepper } from '@/composables/useCompleteOnboardingStepper.js';
 import { COMPLETE_ONBOARDING_STEPS } from '@/composables/useCompleteOnboardingStepper.js';
+import type { StepChangeEvent } from '@/types';
 
-const pageManager = useSuccessPageManager();
+const pageManager = useSuccessPageManager() as {
+  apiSubmitError: Ref<string | null>;
+  isLoading: Ref<boolean>;
+  accountCreated: Ref<boolean>;
+  statusMessage: Ref<string>;
+  subMessage: Ref<string>;
+  isAdmin: Ref<boolean>;
+  isRetrying: Ref<boolean>;
+  navigateToLogin: () => void;
+  navigateToApprovals: () => void;
+  retry: () => void;
+};
 
 // Initialize stepper for progress tracking
 const { completedSteps, currentStepNumber, markStepComplete, navigateToStep } =
-  useCompleteOnboardingStepper();
+  useCompleteOnboardingStepper() as {
+    completedSteps: Ref<string[]>;
+    currentStepNumber: Ref<number>;
+    markStepComplete: (stepId: string) => void;
+    navigateToStep: (stepIndex: number) => void;
+  };
 
 // Mark success step as complete when component mounts
 markStepComplete('success');
 
 // Stepper event handlers
-const handleStepChange = (newStep) => {
-  console.log('Step changed to:', newStep);
+const handleStepChange = (event: StepChangeEvent): void => {
+  console.log('Step changed to:', event);
 };
 
-const handleStepClick = (stepIndex) => {
-  navigateToStep(stepIndex);
+const handleStepClick = (event: { stepIndex: number; step: any }): void => {
+  navigateToStep(event.stepIndex);
 };
 </script>
 

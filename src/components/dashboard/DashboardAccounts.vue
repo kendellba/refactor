@@ -524,128 +524,146 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted, type Ref, type ComputedRef } from 'vue';
 
-const props = defineProps({
-  isMobile: {
-    type: Boolean,
-    default: false,
-  },
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  balance: number;
+  currency: string;
+  accountNumber: string;
+}
+
+interface Transaction {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  type: 'credit' | 'debit';
+  balance: number;
+  status?: string;
+  location?: string;
+}
+
+interface Props {
+  isMobile?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  isMobile: false,
 });
 
-const emit = defineEmits(['navigate']);
-const selectedAccount = ref(null);
-const selectedAccountMobile = ref(null);
-const searchQuery = ref('');
-const dateFrom = ref('01 Jan 2024');
-const dateTo = ref('01 Feb 2024');
-
-// Transaction table headers
-const transactionHeaders = [
-  { title: 'Date', key: 'date', align: 'start' },
-  { title: 'Status', key: 'status' },
-  { title: 'Location', key: 'location' },
-  { title: 'Amount', key: 'amount', align: 'end' },
-];
-
-// Sample transaction data
-const transactions = ref([
+const accounts: Ref<Account[]> = ref([
   {
-    date: 'Feb 10, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 700.00',
+    id: '1',
+    name: 'Checking Account',
+    type: 'checking',
+    balance: 2500.00,
+    currency: 'USD',
+    accountNumber: '****1234'
   },
   {
-    date: 'Feb 10, 2024',
-    status: 'Bill Payment',
-    location: 'DonDonald, Belmont, Port-of-Spain',
-    amount: 'TTD 225.00',
-  },
-  {
-    date: 'Feb 13, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 350.00',
-  },
-  {
-    date: 'Feb 20, 2024',
-    status: 'Deposit',
-    location: 'Cathedral Credit Union, San Juan',
-    amount: 'TTD 1,500.00',
-  },
-  {
-    date: 'Mar 11, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 100.00',
-  },
-  {
-    date: 'Mar 15, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 300.00',
-  },
-  {
-    date: 'Apr 5, 2024',
-    status: 'Deposit',
-    location: 'Cathedral Credit Union, San Juan',
-    amount: 'TTD 1,000.00',
-  },
-  {
-    date: 'Apr 15, 2024',
-    status: 'Bill Payment',
-    location: 'DonDonald, Belmont, Port-of-Spain',
-    amount: 'TTD 500.00',
-  },
-  {
-    date: 'Apr 20, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 650.00',
-  },
-  {
-    date: 'May 11, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 500.00',
-  },
-  {
-    date: 'May 15, 2024',
-    status: 'Withdrawal',
-    location: 'Windler, Aranjuez, San Juan',
-    amount: 'TTD 150.00',
-  },
+    id: '2', 
+    name: 'Savings Account',
+    type: 'savings',
+    balance: 15000.00,
+    currency: 'USD',
+    accountNumber: '****5678'
+  }
 ]);
 
-// Function to view account details in mobile view
-const viewAccountDetailsMobile = (account) => {
-  selectedAccountMobile.value = account;
-};
+const isLoading: Ref<boolean> = ref(false);
+const selectedAccount: Ref<string | null> = ref(null);
+const selectedAccountMobile: Ref<string | null> = ref(null);
+const dateFrom: Ref<string> = ref('');
+const dateTo: Ref<string> = ref('');
+const searchQuery: Ref<string> = ref('');
 
-// Function to select account in desktop view
-const selectAccount = (account) => {
-  selectedAccount.value = account;
-};
+const transactions: Ref<Transaction[]> = ref([
+  {
+    id: '1',
+    date: '2024-01-15',
+    description: 'Direct Deposit',
+    amount: 2500.00,
+    type: 'credit',
+    balance: 15500.00
+  },
+  {
+    id: '2',
+    date: '2024-01-14',
+    description: 'ATM Withdrawal',
+    amount: -100.00,
+    type: 'debit',
+    balance: 13000.00
+  }
+]);
 
-// Navigate to different sections
-const navigateTo = (section) => {
-  emit('navigate', section);
-};
+const transactionHeaders = [
+  { title: 'Date', key: 'date' },
+  { title: 'Description', key: 'description' },
+  { title: 'Amount', key: 'amount' },
+  { title: 'Balance', key: 'balance' }
+];
 
-// Filtered transactions based on search query
-const filteredTransactions = computed(() => {
-  if (!searchQuery.value) return transactions.value;
+const totalBalance: ComputedRef<number> = computed(() => {
+  return accounts.value.reduce((sum, account) => sum + account.balance, 0);
+});
 
-  return transactions.value.filter((transaction) => {
-    return (
-      transaction.date.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      transaction.status.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      transaction.location.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      transaction.amount.toLowerCase().includes(searchQuery.value.toLowerCase())
+const filteredTransactions: ComputedRef<Transaction[]> = computed(() => {
+  let filtered = transactions.value;
+  
+  if (searchQuery.value) {
+    filtered = filtered.filter(t => 
+      t.description.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
-  });
+  }
+  
+  if (dateFrom.value) {
+    filtered = filtered.filter(t => t.date >= dateFrom.value);
+  }
+  
+  if (dateTo.value) {
+    filtered = filtered.filter(t => t.date <= dateTo.value);
+  }
+  
+  return filtered;
+});
+
+const formattedBalance = (balance: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(balance);
+};
+
+const selectAccount = (accountId: string): void => {
+  selectedAccount.value = accountId;
+};
+
+const viewAccountDetailsMobile = (accountType: string): void => {
+  selectedAccountMobile.value = accountType;
+};
+
+const navigateTo = (route: string): void => {
+  console.log('Navigating to:', route);
+  // Router navigation would go here
+};
+
+const refreshAccounts = async (): Promise<void> => {
+  isLoading.value = true;
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // In real app, would fetch from API
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  // Initialize component
 });
 </script>
 

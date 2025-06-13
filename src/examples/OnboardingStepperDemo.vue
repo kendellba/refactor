@@ -31,7 +31,7 @@
         <!-- Demo Content -->
         <v-card class="mt-8" elevation="3">
           <v-card-title class="d-flex align-center">
-            <v-icon :color="getCurrentStepColor()" class="mr-2">
+            <v-icon :color="getCurrentStepStatus()" class="mr-2">
               {{ getCurrentStepIcon() }}
             </v-icon>
             {{ getCurrentStepTitle() }}
@@ -154,12 +154,13 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue';
+<script setup lang="ts">
+import { ref, computed, type Ref, type ComputedRef } from 'vue';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
+import type { StepItem } from '@/types';
 
 // Demo onboarding steps (subset for demonstration)
-const onboardingSteps = ref([
+const onboardingSteps: StepItem[] = [
   {
     title: 'Basic Information',
     subtitle: 'Personal details',
@@ -196,18 +197,24 @@ const onboardingSteps = ref([
     icon: 'mdi-office-building',
     route: '/branch'
   }
-]);
+];
 
-// State
-const currentStep = ref(1);
-const completedSteps = ref([]);
+const currentStep: Ref<number> = ref(0);
+const allowStepNavigation: Ref<boolean> = ref(true);
+const showMobileNavigation: Ref<boolean> = ref(true);
+
+const completedSteps = ref<string[]>([]);
+
+const currentStepData: ComputedRef<StepItem> = computed(() => 
+  onboardingSteps[currentStep.value] || { title: '', route: '' }
+);
+
 const formData = ref({
   sampleField: ''
 });
 
-// Computed properties
-const progressPercentage = computed(() => {
-  return (completedSteps.value.length / onboardingSteps.value.length) * 100;
+const progressPercentage: ComputedRef<number> = computed(() => {
+  return (completedSteps.value.length / onboardingSteps.length) * 100;
 });
 
 const progressColor = computed(() => {
@@ -217,20 +224,20 @@ const progressColor = computed(() => {
 });
 
 // Methods
-const getCurrentStep = () => {
-  return onboardingSteps.value[currentStep.value - 1] || {};
+const getCurrentStep = (): StepItem => {
+  return onboardingSteps[currentStep.value] || { title: '', route: '' };
 };
 
-const getCurrentStepTitle = () => {
+const getCurrentStepTitle = (): string => {
   return getCurrentStep().title || 'Unknown Step';
 };
 
-const getCurrentStepIcon = () => {
+const getCurrentStepIcon = (): string => {
   return getCurrentStep().icon || 'mdi-circle';
 };
 
-const getCurrentStepColor = () => {
-  if (completedSteps.value.includes(getCurrentStep().route)) return 'success';
+const getCurrentStepStatus = (): string => {
+  if (completedSteps.value.includes(getCurrentStep().route || '')) return 'success';
   return 'primary';
 };
 
@@ -247,8 +254,10 @@ const getCurrentStepDescription = () => {
   return descriptions[getCurrentStepTitle()] || 'Complete this step to continue.';
 };
 
-const handleStepChange = ({ stepIndex, step, currentStep: newStep }) => {
-  console.log('Step changed:', { stepIndex, step, newStep });
+const handleStepChange = (event: { stepIndex: number; step: StepItem }): void => {
+  if (allowStepNavigation.value) {
+    currentStep.value = event.stepIndex;
+  }
 };
 
 const handleStepClick = ({ stepIndex, step }) => {
@@ -256,19 +265,19 @@ const handleStepClick = ({ stepIndex, step }) => {
 };
 
 const goToStep = (stepNumber) => {
-  if (stepNumber >= 1 && stepNumber <= onboardingSteps.value.length) {
-    currentStep.value = stepNumber;
+  if (stepNumber >= 1 && stepNumber <= onboardingSteps.length) {
+    currentStep.value = stepNumber - 1;
   }
 };
 
-const nextStep = () => {
-  if (currentStep.value < onboardingSteps.value.length) {
+const nextStep = (): void => {
+  if (currentStep.value < onboardingSteps.length - 1) {
     currentStep.value++;
   }
 };
 
-const previousStep = () => {
-  if (currentStep.value > 1) {
+const previousStep = (): void => {
+  if (currentStep.value > 0) {
     currentStep.value--;
   }
 };
@@ -287,31 +296,31 @@ const completeCurrentStep = () => {
   formData.value.sampleField = '';
 };
 
-const resetProgress = () => {
-  currentStep.value = 1;
+const resetProgress = (): void => {
+  currentStep.value = 0;
   completedSteps.value = [];
   formData.value.sampleField = '';
 };
 
 const getStepStatusIcon = (stepNumber) => {
-  const step = onboardingSteps.value[stepNumber - 1];
+  const step = onboardingSteps[stepNumber - 1];
   if (completedSteps.value.includes(step?.route)) return 'mdi-check-circle';
-  if (stepNumber === currentStep.value) return 'mdi-play-circle';
+  if (stepNumber === currentStep.value + 1) return 'mdi-play-circle';
   return 'mdi-circle-outline';
 };
 
 const getStepStatusColor = (stepNumber) => {
-  const step = onboardingSteps.value[stepNumber - 1];
+  const step = onboardingSteps[stepNumber - 1];
   if (completedSteps.value.includes(step?.route)) return 'success';
-  if (stepNumber === currentStep.value) return 'primary';
+  if (stepNumber === currentStep.value + 1) return 'primary';
   return 'grey';
 };
 
 const getStepClass = (stepNumber) => {
   const classes = [];
-  const step = onboardingSteps.value[stepNumber - 1];
+  const step = onboardingSteps[stepNumber - 1];
   
-  if (stepNumber === currentStep.value) {
+  if (stepNumber === currentStep.value + 1) {
     classes.push('current-step');
   }
   

@@ -1,0 +1,54 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+
+    /* Linting */
+    "strict": false,  // Start with loose settings for gradual migration
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+
+    /* Vue specific */
+    "allowJs": true,  // Allow .js files during migration
+    "checkJs": false, // Don't type-check .js files yet
+    
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* Type definitions */
+    "types": ["node", "vite/client"],
+    
+    /* For gradual migration */
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx", 
+    "src/**/*.vue",
+    "src/**/*.js",   // Include .js files during migration
+    "src/**/*.jsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+} 

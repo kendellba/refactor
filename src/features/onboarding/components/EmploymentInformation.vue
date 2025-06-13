@@ -447,7 +447,7 @@ import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
 import { useHolderType } from '@/composables/useHolderType';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
-import FormFieldError from '@/components/ui/FormFieldError.vue';
+// FormFieldError removed
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
 import {
   useCompleteOnboardingStepper,
@@ -859,3 +859,4 @@ const getFieldError = (fieldName) => {
   }
 }
 </style>
+

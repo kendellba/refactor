@@ -231,7 +231,7 @@ basic info
                         <SchoolNameAutocomplete
                           v-if="!formData.isHomeschooled"
                           v-model="formData.schoolName"
-                          :error-message="fieldErrors.schoolName"
+                          :error-message="Array.isArray(fieldErrors.schoolName) ? fieldErrors.schoolName[0] : fieldErrors.schoolName"
                           @validate="() => validateFormField('schoolName')"
                         />
                         <div v-else class="text-caption mb-4 text-secondary">
@@ -478,11 +478,14 @@ basic info
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Vue composition API imports for reactivity and lifecycle
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 // Vue Router for navigation between pages
 import { useRouter } from 'vue-router';
+
+// TypeScript type imports
+import type { EnhancedBasicInfoFormData, FormErrors } from '@/types';
 
 // Component imports for dialogs and UI elements
 import TermsAndConditions from '@/features/onboarding/components/TermsAndConditions.vue';
@@ -513,7 +516,7 @@ import { useBasicOnboardingStepper, BASIC_ONBOARDING_STEPS } from '@/composables
 // Initialize router and stores for navigation and state management
 const router = useRouter();
 const onboardingStore = useOnboardingStore();
-const demoStore = useDemoStore();
+const demoStore = useDemoStore() as any; // Type assertion for demo store methods
 
 // Initialize form manager composable that handles form data, validation, and persistence
 const {
@@ -531,7 +534,7 @@ const {
   showRecoveryDialog, // Reactive show recovery dialog flag
   restoreFromSaved, // Function to restore data from saved state
   discardSavedData, // Function to discard saved data
-} = useBasicInfoFormManager();
+} = useBasicInfoFormManager() as any;
 
 // Initialize stepper for progress tracking
 const {

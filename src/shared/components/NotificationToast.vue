@@ -37,12 +37,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { type Ref } from 'vue';
 import { useNotifications } from '@/shared/composables/useNotifications';
+import type { Notification, NotificationType, VuetifyColor } from '@/types';
 
-const { notifications, removeNotification } = useNotifications();
+const { notifications, removeNotification } = useNotifications() as {
+  notifications: Ref<Notification[]>;
+  removeNotification: (id: string) => void;
+};
 
-const getColor = (type) => {
+const getColor = (type: NotificationType): VuetifyColor => {
   switch (type) {
     case 'success':
       return 'success';
@@ -55,7 +60,7 @@ const getColor = (type) => {
   }
 };
 
-const getIcon = (type) => {
+const getIcon = (type: NotificationType): string => {
   switch (type) {
     case 'success':
       return 'mdi-check-circle';
@@ -68,7 +73,7 @@ const getIcon = (type) => {
   }
 };
 
-const handleAction = (notification) => {
+const handleAction = (notification: Notification): void => {
   if (notification.action) {
     notification.action();
   }

@@ -4,9 +4,9 @@
     <div class="stepper-container">
       <v-container>
         <SimpleStepper
-          :steps="BASIC_ONBOARDING_STEPS"
+          :steps="COMPLETE_ONBOARDING_STEPS"
           :completed-steps="completedSteps"
-          :initial-step="currentStepNumber"
+          :initial-step="currentStepIndex"
           :allow-step-navigation="true"
           @step-change="handleStepChange"
           @step-click="handleStepClick"
@@ -137,88 +137,106 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
 import { useEmailVerificationFormManager } from '@/features/onboarding/composables/useEmailVerificationFormManager.js';
-import { VERIFICATION_CODE_LENGTH } from '@/features/onboarding/constants/email-verification-options.js';
+import { useDemoStore } from '@/store/demoStore';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
-import { useBasicOnboardingStepper, BASIC_ONBOARDING_STEPS } from '@/composables/useBasicOnboardingStepper.js';
+import {
+  useCompleteOnboardingStepper,
+  COMPLETE_ONBOARDING_STEPS
+} from '@/composables/useCompleteOnboardingStepper.js';
 
+// Initialize router and stores
 const router = useRouter();
+const onboardingStore = useOnboardingStore();
+const demoStore = useDemoStore();
 
-// Initialize form manager composable
-const {
-  formData,              // Reactive form data object
-  fieldErrors,           // Client-side validation errors
-  formSubmitError,       // General form submission error
-  validateField,         // Field validation function
-  handleSubmit: formHandleSubmit,          // Form submission handler
-  handleRequestNewCode,  // Resend code handler
-  navigateToPrevious: formNavigateToPrevious,    // Navigation handler
-  getNavigationForError, // Check if error requires navigation
-  formatInput,           // Input formatting function
-  countdown,             // Resend countdown timer
-  userEmail,             // User's email address
-  isRequestingCode,      // Requesting new code loading state
-  isLoading,             // Form submission loading state
-} = useEmailVerificationFormManager();
+// Initialize form manager with all its properties
+const formManager = useEmailVerificationFormManager();
 
 // Initialize stepper for progress tracking
 const {
+  currentStepIndex,
+  isFirstStep,
+  isLastStep,
+  currentStep,
+  navigateToStep,
+  navigateToPrevious,
+  navigateToNext,
+  completeCurrentStep,
   completedSteps,
   currentStepNumber,
   markStepComplete,
-  navigateToStep
-} = useBasicOnboardingStepper();
+  handleStepChange,
+  handleStepClick
+} = useCompleteOnboardingStepper();
 
-// Stepper event handlers
-const handleStepChange = ({ stepIndex, step }) => {
-  console.log('Step changed:', step.title);
-};
+// Extract reactive properties from form manager
+const {
+  formData,
+  fieldErrors,
+  formSubmitError,
+  isLoading,
+  countdown,
+  isRequestingCode,
+  VERIFICATION_CODE_LENGTH,
+  userEmail,
+  validate,
+  validateField,
+  clearErrors,
+  formatInput,
+  handleRequestNewCode,
+  getFieldError
+} = formManager;
 
-const handleStepClick = ({ stepIndex, step }) => {
-  navigateToStep(step.route);
-};
-
-// Component-level handlers that manage navigation
+// Handle form submission
 const handleSubmit = async () => {
-  const result = await formHandleSubmit();
-  if (result.success && result.shouldNavigate) {
-    // Mark current step as complete
-    markStepComplete('/email-verification');
-    router.push(result.route);
+  clearErrors();
+  onboardingStore.apiSubmitError = null;
+
+  const result = await validate();
+  if (!result.isValid) {
+    return;
   }
+
+  // NOTE: Store action would be called here.
+  // const result = await onboardingStore.submitEmailVerificationAction(formData.value);
+  
+  // Simulating success for now  
+  router.push('/mobile-verification');
 };
 
-const navigateToPrevious = () => {
-  const result = formNavigateToPrevious();
-  if (result.shouldNavigate) {
-    if (result.route === 'back') {
-      router.go(-1);
-  } else {
-      router.push(result.route);
-    }
-  }
+// Handle navigation to previous step
+const navigateToPreviousStep = () => {
+  router.go(-1);
 };
 
-// Watch for errors that require navigation
+// Watch for form submit errors and handle navigation
 watch(formSubmitError, (newError) => {
   if (newError) {
-    const navigation = getNavigationForError();
-    if (navigation.shouldNavigate) {
-      setTimeout(() => {
-        router.push(navigation.route);
-      }, 2000); // Give user time to read the error message
+    const navigation = getNavigationForError?.();
+    if (navigation?.shouldNavigate) {
+      router.push(navigation.route);
     }
   }
 });
 
-// Defensive function to get field errors with proper null checking
-const getFieldError = (fieldName) => {
-  return fieldErrors?.value?.[fieldName] || null;
-};
+// Component lifecycle
+onMounted(() => {
+  // Clear any existing form submit errors when component mounts
+  if (formSubmitError.value) {
+    formSubmitError.value = null;
+  }
+  
+  // Clear any existing API field errors for this form
+  if (onboardingStore.apiFieldErrors?.verificationCode && formData.value.verificationCode) {
+    delete onboardingStore.apiFieldErrors.verificationCode;
+  }
+});
 </script>
 
 <style scoped>

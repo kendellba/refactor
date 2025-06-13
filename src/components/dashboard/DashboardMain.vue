@@ -210,62 +210,87 @@
   </v-app>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, watch, type Ref, type ComputedRef } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from 'vuetify';
+import { useMobile } from '@/composables/useMobile';
 
 // Import dashboard components
 import DashboardAccounts from './DashboardAccounts.vue';
-import DashboardTransfers from './DashboardTransfers/TransferIndex.vue';
+import TransferIndex from './DashboardTransfers/TransferIndex.vue';
 import DashboardApplications from './DashboardApplications.vue';
 import DashboardRequests from './DashboardRequests.vue';
+
+interface Props {
+  initialTab?: string;
+}
+
+interface TabItem {
+  title: string;
+  value: string;
+  icon: string;
+  component: string;
+}
+
+withDefaults(defineProps<Props>(), {
+  initialTab: 'accounts',
+});
 
 const router = useRouter();
 const authStore = useAuthStore();
 const theme = useTheme();
+const isMobile: Ref<boolean> = ref(false);
 
 const currentSection = ref('accounts'); // Default to accounts view
-const isMobile = ref(false);
 const mobileMenuOpen = ref(false);
 const isDarkMode = ref(theme.global.current.value.dark);
+const isLoading = ref(false);
 
-// Map section names to components
-const currentComponent = computed(() => {
-  switch (currentSection.value) {
-    case 'accounts':
-      return DashboardAccounts;
-    case 'transfers':
-      return DashboardTransfers;
-    case 'applications':
-      return DashboardApplications;
-    case 'requests':
-      return DashboardRequests;
-    default:
-      return DashboardAccounts;
+const dashboardTabs: TabItem[] = [
+  {
+    title: 'Accounts',
+    value: 'accounts',
+    icon: 'mdi-bank',
+    component: 'DashboardAccounts'
+  },
+  {
+    title: 'Transfers',
+    value: 'transfers', 
+    icon: 'mdi-swap-horizontal',
+    component: 'TransferIndex'
+  },
+  {
+    title: 'Bills',
+    value: 'bills',
+    icon: 'mdi-receipt',
+    component: 'BillsIndex'
+  },
+  {
+    title: 'Settings',
+    value: 'settings',
+    icon: 'mdi-cog',
+    component: 'SettingsIndex'
   }
+];
+
+const currentComponent: ComputedRef<string> = computed(() => {
+  const tab = dashboardTabs.find(t => t.value === currentSection.value);
+  return tab?.component || 'DashboardAccounts';
 });
 
 // Dynamic header title based on current section
 const getHeaderTitle = computed(() => {
-  switch (currentSection.value) {
-    case 'accounts':
-      return 'ACCOUNTS OVERVIEW';
-    case 'transfers':
-      return 'TRANSFERS OVERVIEW';
-    case 'applications':
-      return 'APPLICATIONS OVERVIEW';
-    case 'requests':
-      return 'REQUESTS OVERVIEW';
-    default:
-      return 'CATHEDRAL ENGAGE';
-  }
+  const tab = dashboardTabs.find(t => t.value === currentSection.value);
+  return tab?.title.toUpperCase() || 'CATHEDRAL ENGAGE';
 });
 
 // Handle navigation events from child components
-const handleNavigation = (section) => {
+const handleNavigation = (section: string): void => {
   currentSection.value = section;
+  // Update URL if needed
+  router.push({ query: { tab: section } });
 };
 
 const logout = () => {
@@ -273,8 +298,8 @@ const logout = () => {
   router.push('/login');
 };
 
-// Watch for window resize to determine if mobile
-const checkMobile = () => {
+// Handle window resize for mobile detection
+const handleResize = (): void => {
   isMobile.value = window.innerWidth < 768;
 };
 
@@ -291,13 +316,23 @@ watch(
   }
 );
 
+const refreshData = async (): Promise<void> => {
+  isLoading.value = true;
+  try {
+    // Simulate API refresh
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 onMounted(() => {
   // Development flag - ALWAYS TRUE for development
   const isDevelopment = true;
 
   // Check mobile on mount and add resize listener
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
+  handleResize();
+  window.addEventListener('resize', handleResize);
 
   // Skip authentication check in development mode
   if (!isDevelopment && !authStore.isAuthenticated) {
@@ -308,7 +343,7 @@ onMounted(() => {
   // Force mock data for development regardless of authentication state
   if (isDevelopment) {
     // Mock user data for development
-    authStore.$patch({
+    (authStore as any).$patch$patch({
       user: {
         first_name: 'Maria',
         last_name: 'User',
@@ -326,11 +361,17 @@ onMounted(() => {
       isAuthenticated: true,
     });
   }
+
+  // Initialize dashboard
+  const queryTab = router.currentRoute.value.query.tab as string;
+  if (queryTab && dashboardTabs.some(tab => tab.value === queryTab)) {
+    currentSection.value = queryTab;
+  }
 });
 
 // Clean up event listeners on unmount
 onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile);
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 

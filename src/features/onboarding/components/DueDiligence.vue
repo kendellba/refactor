@@ -127,41 +127,41 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
+import SimpleStepper from '@/components/ui/SimpleStepper.vue';
+import { useCompleteOnboardingStepper, COMPLETE_ONBOARDING_STEPS } from '@/composables/useCompleteOnboardingStepper.js';
+import { DUE_DILIGENCE_ITEMS } from '@/features/onboarding/constants/due-diligence-options.js';
+import type { StepChangeEvent, StepClickEvent } from '@/types';
+import { type Ref } from 'vue';
 import LogoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
-import { DUE_DILIGENCE_ITEMS } from '@/features/onboarding/constants/due-diligence-options.js';
-import SimpleStepper from '@/components/ui/SimpleStepper.vue';
-import {
-  useCompleteOnboardingStepper,
-  COMPLETE_ONBOARDING_STEPS,
-} from '@/composables/useCompleteOnboardingStepper.js';
 
 const router = useRouter();
 
 // Initialize stepper for progress tracking
-const {
-  completedSteps,
-  currentStepNumber,
-  markStepComplete,
-  navigateToStep
-} = useCompleteOnboardingStepper();
+const { completedSteps, currentStepNumber, markStepComplete, navigateToStep } =
+  useCompleteOnboardingStepper() as {
+    completedSteps: Ref<string[]>;
+    currentStepNumber: Ref<number>;
+    markStepComplete: (route: string) => void;
+    navigateToStep: (route: string) => void;
+  };
 
 // Stepper event handlers
-const handleStepChange = ({ step }) => {
-  console.log('Step changed:', step.title);
+const handleStepChange = (event: StepChangeEvent): void => {
+  console.log('Step changed:', event.step.title);
 };
 
-const handleStepClick = ({ step }) => {
-  navigateToStep(step.route);
+const handleStepClick = (event: StepClickEvent): void => {
+  navigateToStep(event.step.route);
 };
 
-const navigateToPrevious = () => {
+const navigateToPrevious = (): void => {
   router.go(-1);
 };
 
-const navigateToNext = () => {
+const navigateToNext = (): void => {
   // Mark current step as complete
   markStepComplete('/due-diligence');
   // Navigate to the next component in the onboarding flow

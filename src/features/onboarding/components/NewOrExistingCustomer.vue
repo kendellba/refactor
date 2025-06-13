@@ -78,7 +78,7 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
@@ -88,12 +88,12 @@ import bigLogo from '@/assets/bigLogo.png';
 const router = useRouter();
 const onboardingStore = useOnboardingStore();
 
-const selectNewCustomer = () => {
+const selectNewCustomer = (): void => {
   onboardingStore.setCustomerAsNew();
   router.push('/getting-ready');
 };
 
-const selectExistingCustomer = () => {
+const selectExistingCustomer = (): void => {
   onboardingStore.setCustomerAsExisting();
   router.push('/getting-ready');
 };

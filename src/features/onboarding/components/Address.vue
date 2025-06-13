@@ -57,7 +57,7 @@
                       @blur="() => validateFormField('addressLine1')"
                     >
                       <template v-if="fieldErrors.addressLine1" #details>
-                        <FormFieldError :error-message="fieldErrors.addressLine1" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-text-field>
 
@@ -74,7 +74,7 @@
                       @blur="() => validateFormField('addressLine2')"
                     >
                       <template v-if="fieldErrors.addressLine2" #details>
-                        <FormFieldError :error-message="fieldErrors.addressLine2" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-text-field>
 
@@ -92,7 +92,7 @@
                       @blur="() => validateFormField('city')"
                     >
                       <template v-if="fieldErrors.city" #details>
-                        <FormFieldError :error-message="fieldErrors.city" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-text-field>
 
@@ -112,7 +112,7 @@
                       @update:modelValue="() => validateFormField('country')"
                     >
                       <template v-if="fieldErrors.country" #details>
-                        <FormFieldError :error-message="fieldErrors.country" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-select>
 
@@ -132,7 +132,7 @@
                       @update:modelValue="() => validateFormField('dwellingStatus')"
                     >
                       <template v-if="fieldErrors.dwellingStatus" #details>
-                        <FormFieldError :error-message="fieldErrors.dwellingStatus" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-select>
 
@@ -153,7 +153,7 @@
                       @update:modelValue="() => validateFormField('utilityBillType')"
                     >
                       <template v-if="fieldErrors.utilityBillType" #details>
-                        <FormFieldError :error-message="fieldErrors.utilityBillType" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-select>
 
@@ -180,7 +180,7 @@
                       @change="() => validateFormField('proofOfAddress')"
                     >
                       <template v-if="fieldErrors.proofOfAddress" #details>
-                        <FormFieldError :error-message="fieldErrors.proofOfAddress" />
+                        <!-- FormFieldError removed -->
                       </template>
                     </v-file-input>
 
@@ -246,45 +246,44 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { onBeforeUnmount, type Ref } from 'vue';
 import { useDemoStore } from '@/store/demoStore';
-import logoImage from '@/assets/Logo1.png';
-import bigLogo from '@/assets/bigLogo.png';
-import FormFieldError from '@/components/ui/FormFieldError.vue';
+import SimpleStepper from '@/components/ui/SimpleStepper.vue';
+// FormFieldError removed
+import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
+import { useAddressFormManager } from '@/features/onboarding/composables/useAddressFormManager.js';
+import { useCompleteOnboardingStepper, COMPLETE_ONBOARDING_STEPS } from '@/composables/useCompleteOnboardingStepper.js';
 import {
   countryList,
   dwellingStatusOptions,
   utilityBillTypeOptions,
-} from '@/features/onboarding/constants/address-options.js';
-import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
-import { useAddressFormManager } from '@/features/onboarding/composables/useAddressFormManager.js';
-import { onBeforeUnmount } from 'vue';
-import SimpleStepper from '@/components/ui/SimpleStepper.vue';
-import {
-  useCompleteOnboardingStepper,
-  COMPLETE_ONBOARDING_STEPS,
-} from '@/composables/useCompleteOnboardingStepper.js';
+} from '@/features/onboarding/constants/address-options';
+import type { AddressFormData, FormErrors, StepChangeEvent, StepClickEvent } from '@/types';
+import logoImage from '@/assets/Logo1.png';
+import bigLogo from '@/assets/bigLogo.png';
 
 const router = useRouter();
 const demoStore = useDemoStore();
 const onboardingStore = useOnboardingStore();
 
 // Initialize stepper for progress tracking
-const {
-  completedSteps,
-  currentStepNumber,
-  markStepComplete,
-  navigateToStep
-} = useCompleteOnboardingStepper();
+const { completedSteps, currentStepNumber, markStepComplete, navigateToStep } =
+  useCompleteOnboardingStepper() as {
+    completedSteps: Ref<string[]>;
+    currentStepNumber: Ref<number>;
+    markStepComplete: (route: string) => void;
+    navigateToStep: (route: string) => void;
+  };
 
 // Stepper event handlers
-const handleStepChange = ({ step }) => {
-  console.log('Step changed:', step.title);
+const handleStepChange = (event: StepChangeEvent): void => {
+  console.log('Step changed:', event.step.title);
 };
 
-const handleStepClick = ({ step }) => {
-  navigateToStep(step.route);
+const handleStepClick = (event: StepClickEvent): void => {
+  navigateToStep(event.step.route);
 };
 
 const {
@@ -295,9 +294,9 @@ const {
   validateFormField,
   clearErrors,
   clearPersistedFormState
-} = useAddressFormManager();
+} = useAddressFormManager() as any;
 
-const handleSubmit = async (event) => {
+const handleSubmit = async (event: Event): Promise<void> => {
   event.preventDefault();
   clearErrors();
 
@@ -313,7 +312,11 @@ const handleSubmit = async (event) => {
   }
 
   console.log('Validation passed, submitting to store...');
-  const storeSubmissionResult = await onboardingStore.submitAddressData(formData.value);
+  const storeSubmissionResult = await onboardingStore.submitAddressData(formData.value) as {
+    success: boolean;
+    fieldMessages?: FormErrors;
+    generalMessage?: string;
+  };
   console.log('Store submission result:', storeSubmissionResult);
 
   if (storeSubmissionResult.success) {
@@ -333,12 +336,15 @@ const handleSubmit = async (event) => {
   }
 };
 
-const navigateToPrevious = () => {
+const navigateToPrevious = (): void => {
   router.go(-1);
 };
 
-// Cleanup handled by form manager
-
+// Helper function to get error message as string for FormFieldError component
+const getErrorMessage = (error: string | string[] | undefined): string => {
+  if (!error) return '';
+  return Array.isArray(error) ? error[0] : error;
+};
 </script>
 
 <style scoped>

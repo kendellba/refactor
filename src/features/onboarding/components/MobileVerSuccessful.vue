@@ -68,7 +68,7 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';

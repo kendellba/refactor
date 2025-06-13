@@ -3,6 +3,6 @@
   <DashboardMain />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import DashboardMain from '@/components/dashboard/DashboardMain.vue';
 </script>

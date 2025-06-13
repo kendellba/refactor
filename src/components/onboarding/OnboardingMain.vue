@@ -49,9 +49,9 @@
   </div>
 </template>
 
-<script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted, onUnmounted, type ComputedRef } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import AppStepper from '@/components/ui/AppStepper.vue';
 import BasicInfoForm from './BasicInfoForm.vue';
 import ContactInfoForm from './ContactInfoForm.vue';
@@ -60,36 +60,98 @@ import EmploymentInfoForm from './EmploymentInfoForm.vue';
 import BranchSelectionForm from './BranchSelectionForm.vue';
 
 const router = useRouter();
+const route = useRoute();
 const isMobile = ref(false);
 
+const pageTitle: ComputedRef<string> = computed(() => {
+  const routeTitle = route.meta?.title;
+  return routeTitle ? String(routeTitle) : 'Onboarding';
+});
+
 // Define the steps for the onboarding process
-const steps = [
+const steps = ref([
   {
+    id: '1',
     title: 'Basic Information',
     subtitle: 'Personal details',
-    icon: 'mdi-account'
+    component: 'BasicInfoForm',
+    isCompleted: false,
+    isActive: true
   },
   {
-    title: 'Contact Information',
-    subtitle: 'How to reach you',
-    icon: 'mdi-phone'
-  },
-  {
+    id: '2',
     title: 'Address Information',
-    subtitle: 'Where you live',
-    icon: 'mdi-map-marker'
+    subtitle: 'Contact details',
+    component: 'AddressForm',
+    isCompleted: false,
+    isActive: false
   },
   {
+    id: '3',
+    title: 'ID Information',
+    subtitle: 'Identity verification',
+    component: 'IDInformationForm',
+    isCompleted: false,
+    isActive: false
+  },
+  {
+    id: '4',
     title: 'Employment Information',
     subtitle: 'Work details',
-    icon: 'mdi-briefcase'
-  },
-  {
-    title: 'Branch Selection',
-    subtitle: 'Choose your branch',
-    icon: 'mdi-bank'
+    component: 'EmploymentInformationForm',
+    isCompleted: false,
+    isActive: false
   }
-];
+]);
+
+// Reactive state for the current step
+const currentStep = reactive({
+  id: '1',
+  component: 'BasicInfoForm'
+});
+
+// Method to handle step navigation
+const goToStep = (stepId: string): void => {
+  const step = steps.value.find(s => s.id === stepId);
+  if (step) {
+    // Update active state
+    steps.value.forEach(s => {
+      s.isActive = s.id === stepId;
+    });
+    
+    // Update current step
+    currentStep.id = stepId as any;
+    currentStep.component = step.component;
+  }
+};
+
+// Method to mark step as completed and move to next
+const completeStep = (stepId: string): void => {
+  const step = steps.value.find(s => s.id === stepId);
+  if (step) {
+    step.isCompleted = true;
+    
+    // Move to next step if available
+    const nextStep = steps.value.find(s => s.id === stepId + 1);
+    if (nextStep) {
+      goToStep(nextStep.id);
+    }
+  }
+};
+
+// Handle window resize for mobile detection
+const handleResize = (): void => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+  isMobile.value = window.innerWidth < 768;
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
 
 // Store all onboarding data
 const onboardingData = reactive({
@@ -148,21 +210,6 @@ const handleEmploymentInfoValid = (isValid) => {
 const handleBranchInfoValid = (isValid) => {
   stepValidation.branchInfo = isValid;
 };
-
-// Check if mobile on mount
-onMounted(() => {
-  isMobile.value = window.innerWidth < 768;
-  window.addEventListener('resize', () => {
-    isMobile.value = window.innerWidth < 768;
-  });
-});
-
-// Clean up event listener
-onUnmounted(() => {
-  window.removeEventListener('resize', () => {
-    isMobile.value = window.innerWidth < 768;
-  });
-});
 </script>
 
 <style scoped>
@@ -178,3 +225,5 @@ onUnmounted(() => {
   }
 }
 </style> 
+
+

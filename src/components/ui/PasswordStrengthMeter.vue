@@ -71,13 +71,14 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  strength: {
-    type: Object,
-    required: true,
-  },
-});
+<script setup lang="ts">
+import type { PasswordStrength } from '@/types';
+
+interface Props {
+  strength: PasswordStrength;
+}
+
+defineProps<Props>();
 </script>
 
 <style scoped>

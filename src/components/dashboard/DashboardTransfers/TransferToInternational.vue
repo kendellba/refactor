@@ -42,17 +42,22 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue';
 
-defineProps({
-  isMobile: {
-    type: Boolean,
-    default: false,
-  },
+interface Props {
+  isMobile?: boolean;
+}
+
+interface Emits {
+  'back': [];
+}
+
+withDefaults(defineProps<Props>(), {
+  isMobile: false,
 });
 
-const emit = defineEmits(['back']);
+const emit = defineEmits<Emits>();
 const isOpen = ref(true);
 
 const closeForm = () => {

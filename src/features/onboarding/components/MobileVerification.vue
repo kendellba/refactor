@@ -4,9 +4,9 @@
     <div class="stepper-container">
       <v-container>
         <SimpleStepper
-          :steps="BASIC_ONBOARDING_STEPS"
+          :steps="COMPLETE_ONBOARDING_STEPS"
           :completed-steps="completedSteps"
-          :initial-step="currentStepNumber"
+          :initial-step="currentStepIndex"
           :allow-step-navigation="true"
           @step-change="handleStepChange"
           @step-click="handleStepClick"
@@ -152,113 +152,100 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useDemoStore } from '@/store/demoStore';
 import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
 import { useMobileVerificationFormManager } from '@/features/onboarding/composables/useMobileVerificationFormManager.js';
+import { useDemoStore } from '@/store/demoStore';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
-import { useBasicOnboardingStepper, BASIC_ONBOARDING_STEPS } from '@/composables/useBasicOnboardingStepper.js';
+import {
+  useCompleteOnboardingStepper,
+  COMPLETE_ONBOARDING_STEPS
+} from '@/composables/useCompleteOnboardingStepper.js';
 
 const router = useRouter();
-const demoStore = useDemoStore();
 const onboardingStore = useOnboardingStore();
+const demoStore = useDemoStore();
 
-// Initialize form manager composable
+const formManager = useMobileVerificationFormManager();
+
+const {
+  currentStepIndex,
+  isFirstStep,
+  isLastStep,
+  currentStep,
+  navigateToStep,
+  navigateToPrevious,
+  navigateToNext,
+  completeCurrentStep,
+  completedSteps,
+  currentStepNumber,
+  markStepComplete,
+  handleStepChange,
+  handleStepClick
+} = useCompleteOnboardingStepper();
+
+// Extract properties from form manager
 const {
   formData,
   fieldErrors,
   formSubmitError,
-  validate,
-  handleSubmit: formHandleSubmit,
-  handleRequestNewCode,
-  navigateToPrevious: formNavigateToPrevious,
-  getNavigationForError,
-  formatInput,
+  isLoading,
   countdown,
-  resendCount,
-  maxResendAttempts,
   isResendDisabled,
   isSendingCode,
-  isLoading,
-} = useMobileVerificationFormManager();
+  resendCount,
+  maxResendAttempts,
+  validate,
+  validateField,
+  clearErrors,
+  formatInput,
+  handleResendVerificationCode,
+  getFieldError,
+  getNavigationForError
+} = formManager;
 
-// Initialize stepper for progress tracking
-const {
-  completedSteps,
-  currentStepNumber,
-  markStepComplete,
-  navigateToStep
-} = useBasicOnboardingStepper();
-
-// Stepper event handlers
-const handleStepChange = ({ stepIndex, step }) => {
-  console.log('Step changed:', step.title);
-};
-
-const handleStepClick = ({ stepIndex, step }) => {
-  navigateToStep(step.route);
-};
-
-// Component-level handlers that manage navigation
 const handleSubmit = async () => {
-  const result = await formHandleSubmit();
-  if (result.success && result.shouldNavigate) {
-    // Mark current step as complete
-    markStepComplete('/mobile-verification');
-    router.push(result.route);
-  }
-};
+  clearErrors();
+  onboardingStore.apiSubmitError = null;
 
-const navigateToPrevious = () => {
-  const result = formNavigateToPrevious();
-  if (result.shouldNavigate) {
-    if (result.route === 'back') {
-      router.go(-1);
-    } else {
-      router.push(result.route);
-    }
-  }
-};
-
-const handleResendVerificationCode = async () => {
-  if (isResendDisabled.value || isSendingCode.value) {
+  const result = await validate();
+  if (!result.isValid) {
     return;
   }
-  await handleRequestNewCode();
+
+  // NOTE: Store action would be called here.
+  // const result = await onboardingStore.submitMobileVerificationAction(formData.value);
+  
+  // Simulating success for now
+  router.push('/address');
 };
 
-// Watch for errors that require navigation
+const navigateToPreviousStep = () => {
+  router.go(-1);
+};
+
+// Watch for form submit errors and handle navigation
 watch(formSubmitError, (newError) => {
   if (newError) {
-    const navigation = getNavigationForError();
-    if (navigation.shouldNavigate) {
-      setTimeout(() => {
-        router.push(navigation.route);
-      }, 2000); // Give user time to read the error message
+    const navigation = getNavigationForError?.();
+    if (navigation?.shouldNavigate) {
+      router.push(navigation.route);
     }
   }
 });
 
-// Watch for form data changes to clear error messages
-watch(formData, () => {
+onMounted(() => {
+  // Clear any existing form submit errors when component mounts
   if (formSubmitError.value) {
     formSubmitError.value = null;
   }
-  if (fieldErrors.value.verificationCode && formData.value.verificationCode) {
-    delete fieldErrors.value.verificationCode;
-  }
-  if (onboardingStore.apiFieldErrors.verificationCode && formData.value.verificationCode) {
+  
+  // Clear any existing API field errors for this form
+  if (onboardingStore.apiFieldErrors?.verificationCode && formData.value.verificationCode) {
     delete onboardingStore.apiFieldErrors.verificationCode;
-  }
-}, { deep: true });
-
-onMounted(async () => {
-  if (!demoStore.signupId) {
-    router.push('/signup');
-    return;
   }
 });
 </script>

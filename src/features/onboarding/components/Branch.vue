@@ -196,52 +196,76 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import type { Ref } from 'vue';
 import { useBranchFormManager } from '@/features/onboarding/composables/useBranchFormManager.js';
+import { useCompleteOnboardingStepper, COMPLETE_ONBOARDING_STEPS } from '@/composables/useCompleteOnboardingStepper.js';
+import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.js';
 import {
   BRANCH_OPTIONS,
   PREFERRED_CONTACT_METHOD_OPTIONS,
   BEST_CONTACT_TIME_OPTIONS,
 } from '@/features/onboarding/constants/branch-options.js';
-import logoImage from '@/assets/Logo1.png'; // Updated path
-import bigLogo from '@/assets/bigLogo.png'; // Updated path
-import { onMounted, onBeforeUnmount } from 'vue';
-import SimpleStepper from '@/components/ui/SimpleStepper.vue';
-import { useCompleteOnboardingStepper } from '@/composables/useCompleteOnboardingStepper.js';
-import { COMPLETE_ONBOARDING_STEPS } from '@/composables/useCompleteOnboardingStepper.js';
-// FormFieldError component is not used directly if errors are handled inline or via formAlertError
+import logoImage from '@/assets/Logo1.png';
+import SimpleStepper from '@/shared/SimpleStepper.vue';
+
+// Use the same logo for bigLogo
+const bigLogo = logoImage;
+
+// Type definitions
+interface BranchFormData {
+  selectedBranch: string;
+  preferredContactMethod: string;
+  bestContactTime: string;
+}
+
+interface FormErrors {
+  [key: string]: string;
+}
+
+interface StepChangeEvent {
+  step: string;
+  index: number;
+}
+
+interface StepClickEvent {
+  stepIndex: number;
+}
 
 const router = useRouter();
 const onboardingStore = useOnboardingStore();
 
-const {
-  formData,
-  fieldErrors,
-  formAlertError,
-  validate,
-  validateFormField,
-  clearErrors,
-  clearPersistedFormState,
-} = useBranchFormManager();
+// Form management with explicit typing
+const branchFormManager = useBranchFormManager();
+const formData = branchFormManager.formData as Ref<BranchFormData>;
+const fieldErrors = branchFormManager.fieldErrors as Ref<FormErrors>;
+const formAlertError = branchFormManager.formAlertError as Ref<string | null>;
+const validate = branchFormManager.validate;
+const validateFormField = branchFormManager.validateFormField;
+const clearErrors = branchFormManager.clearErrors;
+const clearPersistedFormState = branchFormManager.clearPersistedFormState;
 
 // Initialize stepper for progress tracking
-const { completedSteps, currentStepNumber, markStepComplete, navigateToStep } =
-  useCompleteOnboardingStepper();
+const stepperManager = useCompleteOnboardingStepper();
+const completedSteps = stepperManager.completedSteps;
+const currentStepNumber = stepperManager.currentStepNumber;
+const markStepComplete = stepperManager.markStepComplete;
+const navigateToStep = stepperManager.navigateToStep;
 
-// Stepper event handlers
-const handleStepChange = (newStep) => {
-  console.log('Step changed to:', newStep);
+// Stepper event handlers with proper typing
+const handleStepChange = (event: StepChangeEvent): void => {
+  console.log('Step changed to:', event);
 };
 
-const handleStepClick = (stepIndex) => {
-  navigateToStep(stepIndex);
+const handleStepClick = (event: StepClickEvent): void => {
+  navigateToStep(event.stepIndex);
 };
 
-const handleSubmit = async () => {
+const handleSubmit = async (): Promise<void> => {
   try {
-    clearErrors(); // Clear previous Zod errors
+    clearErrors(''); // Clear previous Zod errors
 
     const validationResult = await validate(formData.value);
     if (!validationResult.isValid) {
@@ -267,21 +291,23 @@ const handleSubmit = async () => {
       }
     }
   } catch (error) {
+    console.error('Form submission error:', error);
     formAlertError.value = 'An unexpected error occurred. Please try again.';
   }
 };
 
-const navigateToPrevious = () => {
+const navigateToPrevious = (): void => {
   try {
     router.go(-1);
   } catch (error) {
+    console.error('Navigation error:', error);
     router.push('/power-of-attorney');
   }
 };
 
 onMounted(() => {
   // Initialize form data if needed
-  if (!formData.value) {
+  if (!formData.value || Object.keys(formData.value).length === 0) {
     formData.value = {
       selectedBranch: '',
       preferredContactMethod: '',
@@ -292,11 +318,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   // Clean up any subscriptions or timers if needed
-  clearErrors();
+  clearErrors('');
 });
-
-// All onMounted, onBeforeUnmount, watch for localStorage, and direct API calls
-// are now handled by useBranchFormManager or onboardingStore.
 </script>
 
 <style scoped>

@@ -125,7 +125,7 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useForgotPasswordManager } from '@/features/auth/composables/useForgotPasswordManager.js';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';

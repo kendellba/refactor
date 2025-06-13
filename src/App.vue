@@ -5,10 +5,8 @@
   </v-app>
 </template>
 
-<script>
-export default {
-  name: 'App',
-};
+<script setup lang="ts">
+import NotificationToast from '@/shared/components/NotificationToast.vue';
 </script>
 
 <style>
@@ -70,7 +68,3 @@ button:disabled:hover {
   background-color: #cccccc;
 }
 </style>
-
-<script setup>
-import NotificationToast from '@/shared/components/NotificationToast.vue';
-</script>

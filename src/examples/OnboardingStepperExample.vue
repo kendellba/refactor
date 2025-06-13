@@ -40,16 +40,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import SimpleStepper from '@/components/ui/SimpleStepper.vue';
+import type { StepItem } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
 
 // Define your onboarding steps
-const onboardingSteps = ref([
+const onboardingSteps: StepItem[] = [
   {
     title: 'Customer Type',
     subtitle: 'New or existing customer',
@@ -108,13 +109,13 @@ const onboardingSteps = ref([
     title: 'ID Information',
     subtitle: 'Identification documents',
     icon: 'mdi-card-account-details',
-    route: '/id-information'
+    route: '/id-info'
   },
   {
     title: 'Employment',
     subtitle: 'Work information',
     icon: 'mdi-briefcase',
-    route: '/employment-information'
+    route: '/employment'
   },
   {
     title: 'PEP Information',
@@ -152,7 +153,7 @@ const onboardingSteps = ref([
     icon: 'mdi-check-circle',
     route: '/success'
   }
-]);
+];
 
 // Track completed steps
 const completedSteps = ref([]);
@@ -163,7 +164,7 @@ const showDebugInfo = ref(true);
 // Computed properties
 const getCurrentStepNumber = () => {
   const currentRoute = route.path;
-  const stepIndex = onboardingSteps.value.findIndex(step => step.route === currentRoute);
+  const stepIndex = onboardingSteps.findIndex(step => step.route === currentRoute);
   return stepIndex >= 0 ? stepIndex + 1 : 1;
 };
 

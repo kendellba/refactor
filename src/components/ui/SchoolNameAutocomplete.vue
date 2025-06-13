@@ -31,53 +31,51 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue';
+<script setup lang="ts">
+import { ref, watch, type Ref } from 'vue';
 import schoolsList from '@/assets/data/schools.json';
 
-const props = defineProps({
-  modelValue: {
-    type: String,
-    default: '',
-  },
-  label: {
-    type: String,
-    default: 'School Name',
-  },
-  placeholder: {
-    type: String,
-    default: 'Enter your school name',
-  },
-  errorMessage: {
-    type: String,
-    default: '',
-  },
-  required: {
-    type: Boolean,
-    default: true,
-  },
+interface Props {
+  modelValue: string;
+  label?: string;
+  placeholder?: string;
+  errorMessage?: string;
+  required?: boolean;
+}
+
+interface Emits {
+  'update:modelValue': [value: string];
+  'validate': [];
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
+  label: 'School Name',
+  placeholder: 'Enter your school name',
+  errorMessage: '',
+  required: true,
 });
 
-const emit = defineEmits(['update:modelValue', 'validate']);
+const emit = defineEmits<Emits>();
 
-const inputValue = ref(props.modelValue);
-const filteredSchools = ref([]);
-const isDropdownOpen = ref(false);
+const inputValue: Ref<string> = ref(props.modelValue);
+const filteredSchools: Ref<string[]> = ref([]);
+const isDropdownOpen: Ref<boolean> = ref(false);
 
 // Watch for external changes to modelValue
 watch(
   () => props.modelValue,
-  (newValue) => {
+  (newValue: string) => {
     inputValue.value = newValue;
   }
 );
 
 // Watch for internal input changes
-watch(inputValue, (newValue) => {
+watch(inputValue, (newValue: string) => {
   emit('update:modelValue', newValue);
 });
 
-const handleInput = () => {
+const handleInput = (): void => {
   console.log('Input value changed to:', inputValue.value);
 
   // Ensure we're always emitting a valid string
@@ -91,28 +89,28 @@ const handleInput = () => {
   emit('validate');
 };
 
-const handleBlur = () => {
+const handleBlur = (): void => {
   window.setTimeout(() => {
     isDropdownOpen.value = false;
   }, 200);
 };
 
-const filterSchools = (input) => {
+const filterSchools = (input: string): void => {
   if (!input || input.length < 2) {
     filteredSchools.value = [];
     return;
   }
 
   const searchTerm = input.toLowerCase();
-  filteredSchools.value = schoolsList
-    .filter((school) => school.toLowerCase().includes(searchTerm))
+  filteredSchools.value = (schoolsList as string[])
+    .filter((school: string) => school.toLowerCase().includes(searchTerm))
     .slice(0, 10); // Limit to 10 results for performance
 
   // Only show dropdown if we have results
   isDropdownOpen.value = filteredSchools.value.length > 0;
 };
 
-const selectSchool = (school) => {
+const selectSchool = (school: string): void => {
   console.log('Selecting school:', school);
   inputValue.value = school;
   emit('update:modelValue', school);

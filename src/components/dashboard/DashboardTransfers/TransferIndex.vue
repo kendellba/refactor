@@ -246,12 +246,9 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, defineEmits, defineProps } from 'vue';
+<script setup lang="ts">
+import { ref, computed, type Ref, type ComputedRef } from 'vue';
 import { useTransferStore } from '@/store/transfersStore';
-
-// Import each transfer component
-// These will be implemented separately
 import TransferToSelf from './TransferToSelf.vue';
 import TransferToMember from './TransferToMember.vue';
 import TransferToExternal from './TransferToExternal.vue';
@@ -259,79 +256,124 @@ import TransferToInternational from './TransferToInternational.vue';
 import ManagePayees from './ManagePayees.vue';
 import ScheduledTransfers from './ScheduledTransfers.vue';
 
-const props = defineProps({
-  isMobile: {
-    type: Boolean,
-    default: false,
-  },
+interface Props {
+  isMobile?: boolean;
+}
+
+interface TransferOption {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: string;
+  component: string;
+  color: string;
+  type: string;
+}
+
+withDefaults(defineProps<Props>(), {
+  isMobile: false,
 });
 
 const emit = defineEmits(['navigate']);
 const transferStore = useTransferStore();
 
-const transferOptions = [
+const activeComponent: Ref<string | null> = ref(null);
+const isLoading: Ref<boolean> = ref(false);
+
+const transferOptions: TransferOption[] = [
   {
+    id: 'self',
     type: 'self',
     title: 'Transfer to Self',
-    description: 'Move money between your accounts',
-    icon: 'mdi-account-reactivate',
-    component: TransferToSelf,
+    subtitle: 'Between your accounts',
+    description: 'Transfer between your accounts',
+    icon: 'mdi-account-arrow-right',
+    component: 'TransferToSelf',
+    color: 'primary'
   },
   {
+    id: 'member',
     type: 'member',
     title: 'Transfer to Member',
-    description: 'Send money to other credit union members',
+    subtitle: 'To another member',
+    description: 'Transfer to another member',
     icon: 'mdi-account-group',
-    component: TransferToMember,
+    component: 'TransferToMember',
+    color: 'success'
   },
   {
+    id: 'external',
     type: 'external',
-    title: 'Transfer to External Payee',
-    description: 'Send money to local external accounts',
+    title: 'Transfer to External',
+    subtitle: 'To external bank',
+    description: 'Transfer to external bank',
     icon: 'mdi-bank-outline',
-    component: TransferToExternal,
+    component: 'TransferToExternal',
+    color: 'warning'
   },
   {
+    id: 'international',
     type: 'international',
-    title: 'Transfer to International Payee',
-    description: 'Send money internationally',
+    title: 'International Transfer',
+    subtitle: 'Worldwide transfers',
+    description: 'International transfers',
     icon: 'mdi-earth',
-    component: TransferToInternational,
+    component: 'TransferToInternational',
+    color: 'info'
   },
   {
-    type: 'manage',
+    id: 'payees',
+    type: 'payees',
     title: 'Manage Payees',
-    description: 'Add, edit, or delete payees',
-    icon: 'mdi-account-multiple-check',
-    component: ManagePayees,
+    subtitle: 'Manage recipients',
+    description: 'Manage payee recipients',
+    icon: 'mdi-account-multiple',
+    component: 'ManagePayees',
+    color: 'secondary'
   },
   {
+    id: 'scheduled',
     type: 'scheduled',
     title: 'Scheduled Transfers',
-    description: 'View and manage recurring transfers',
+    subtitle: 'View scheduled',
+    description: 'View scheduled transfers',
     icon: 'mdi-calendar-clock',
-    component: ScheduledTransfers,
-  },
+    component: 'ScheduledTransfers',
+    color: 'purple'
+  }
 ];
 
-// Map transfer types to components
-const selectedComponent = computed(() => {
-  const option = transferOptions.find((opt) => opt.type === transferStore.selectedTransferType);
-  return option ? option.component : null;
+const selectedComponent: ComputedRef<string | null> = computed(() => {
+  return activeComponent.value;
 });
 
-const selectTransferType = (type) => {
-  transferStore.setSelectedTransferType(type);
+const selectTransferType = (optionType: string): void => {
+  const option = transferOptions.find(opt => opt.type === optionType);
+  if (option) {
+    activeComponent.value = option.component;
+  }
+};
+
+const selectTransferOption = (optionId: string): void => {
+  const option = transferOptions.find(opt => opt.id === optionId);
+  if (option) {
+    activeComponent.value = option.component;
+  }
+};
+
+const goBack = (): void => {
+  activeComponent.value = null;
+};
+
+const handleTransferComplete = (result: any): void => {
+  console.log('Transfer completed:', result);
+  goBack();
 };
 
 const navigateBack = () => {
   emit('navigate', 'accounts');
 };
-
-onMounted(() => {
-  // Reset the transfer type selection when the component is mounted
-  transferStore.setSelectedTransferType(null);
-});
 </script>
 
 <style scoped>

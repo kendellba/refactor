@@ -82,17 +82,17 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useDemoStore } from '@/store/demoStore';
 import logoImage from '@/assets/Logo1.png';
 import bigLogo from '@/assets/bigLogo.png';
 
 const router = useRouter();
-const store = useDemoStore();
+const store = useDemoStore() as any; // Type assertion for store methods
 
 // Handle create account button click
-const handleCreateAccount = () => {
+const handleCreateAccount = (): void => {
   // Reset any existing customer state
   store.setNewCustomer(false);
   store.setExistingCustomer(false);
